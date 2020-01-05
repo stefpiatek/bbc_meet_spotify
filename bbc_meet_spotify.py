@@ -38,7 +38,8 @@ class BBCSounds:
         song_title = [i.text.strip() for i in song_grid.find_all_next("p", class_="promotion__synopsis centi text--subtle")]
         songs = [Song(artist, track_name) for track_name, artist in zip(song_title, artists)]
         # remove last item because this is an album
-        return songs[:-1]
+        logger.info(f"Album of the day is is: {songs.pop(-1)}")
+        return songs
 
 
 class Song:
@@ -48,7 +49,7 @@ class Song:
         self.artist = artist.split(" feat ")[0]
 
     def __repr__(self):
-        return f"<Song: {self.artist} - {self.song_title}>"
+        return f"<{self.artist}: {self.song_title}>"
 
     @classmethod
     def clean_string(cls, string):
