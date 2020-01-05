@@ -1,0 +1,6 @@
+[6music]
+    verbose_name = "BBC 6 Music"
+    url= "https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist"
+[radio1]
+    verbose_name = "BBC Radio 1"
+    url = "https://www.bbc.co.uk/programmes/articles/3tqPdBWF9yMbTrfjWvfKV8t/radio-1-playlist"
