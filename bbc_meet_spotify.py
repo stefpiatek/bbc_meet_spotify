@@ -149,25 +149,34 @@ class Spotify:
         self.add_songs_to_playlist(playlist_id, song_ids)
         logger.info("All done, if you have any errors then you'll have to add these manually I'm afraid")
 
+    def query_spotify(self, artist: str, song_title: str) -> str:
+        """
+        Query spotify for artist and song title, returning the id
+        :param artist: artist
+        :param song_title: song title
+        :raises IndexError: if no tracks are found
+        :return: spotify song id
+        """
+        results = self.spotify.search(q=f"artist:{artist} track:{song_title}")["tracks"]["items"]
+        results.sort(key=lambda x: len(x["name"]))
+        return results[0]["id"]
+
     def _get_song_id(self, song: Song) -> str:
         """
         Get song id from spotify.
         Will attempt to first search keeping apostrophes in text, if that fails then
         the song will be searched again without apostrophes
+        Underscore so I don't get it mixed up with get_song_ids
         :param song: Song
         :return: song_id or None if song was not found
         """
         song_id = None
         try:
-            results = self.spotify.search(q=f"artist:'{song.artist}' track:'{song.song_title}'")
-            song_id = results["tracks"]["items"][0]["id"]
+            song_id = self.query_spotify(song.artist, song.song_title)
         except IndexError:
             # try fixing the strings with removing apostrophes
-            new_song_title = song.song_title.replace("'", "")
-            new_artist = song.artist.replace("'", "")
             try:
-                results = self.spotify.search(q=f"artist:'{new_artist}' track:'{new_song_title}'")
-                song_id = results["tracks"]["items"][0]["id"]
+                song_id = self.query_spotify(song.artist.replace("'", ""), song.song_title.replace("'", ""))
             except IndexError as e:
                 logger.error(f"Could not find a song: {song}", e)
         return song_id
@@ -182,4 +191,4 @@ def main(playlist_key="6music", date_prefix=True, public_playlist=True):
 
 
 if __name__ == "__main__":
-    main()
+    main(playlist_key="radio1")
