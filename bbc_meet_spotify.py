@@ -85,9 +85,10 @@ class Spotify:
         playlist_info = self.spotify.user_playlist(self.username, playlist_id, "tracks")
         existing_songs = [x["track"]["id"] for x in playlist_info["tracks"]["items"]]
         new_song_ids = [song_id for song_id in song_ids if song_id not in existing_songs]
-
-        self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
-        logger.info("Added all songs to playlist successfully")
+        try:
+            self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
+        except AttributeError as e:
+            logger.info(f"No new songs were added to the playlist")
 
     def get_spotify_token(self, config: dict) -> str:
         """
@@ -194,4 +195,4 @@ def main(playlist_key="6music", date_prefix=True, public_playlist=True):
 
 
 if __name__ == "__main__":
-    main()
+    main("radio1")
