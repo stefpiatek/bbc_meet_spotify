@@ -77,13 +77,16 @@ class Spotify:
 
     def add_songs_to_playlist(self, playlist_id: str, song_ids: List[str]):
         """
-        Add songs to spotify playlist
+        Songs which are not currently in the playlist will be added.
         :param playlist_id: id for playlist
         :param song_ids: list of song ids
         :return:
         """
-        # remove songs that already exist?
-        self.spotify.user_playlist_add_tracks(self.username, playlist_id, song_ids)
+        playlist_info = self.spotify.user_playlist(self.username, playlist_id, "tracks")
+        existing_songs = [x["track"]["id"] for x in playlist_info["tracks"]["items"]]
+        new_song_ids = [song_id for song_id in song_ids if song_id not in existing_songs]
+
+        self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
         logger.info("Added all songs to playlist successfully")
 
     def get_spotify_token(self, config: dict) -> str:
@@ -191,4 +194,4 @@ def main(playlist_key="6music", date_prefix=True, public_playlist=True):
 
 
 if __name__ == "__main__":
-    main(playlist_key="radio1")
+    main()
