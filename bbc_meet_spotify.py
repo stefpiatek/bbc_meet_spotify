@@ -4,6 +4,7 @@ import unicodedata
 from pathlib import Path
 from typing import List
 
+import click
 import requests
 import spotipy
 import toml
@@ -14,14 +15,16 @@ from spotipy import util
 
 class BBCSounds:
     @staticmethod
-    def get_playlist_info(playlist_key: str) -> dict:
+    def get_playlist_info(playlist_key: str = None) -> dict:
         """
-        Get playlist information for requested playlist
+        Get playlist information for requests playlist, if no playlist, returns the entire toml dictionary.
         :param playlist_key: key in the toml file
         :return: dictionary of url and verbose name for the playlist
         """
         playlists = toml.load(Path("./bbc_playlists.toml"))
-        return playlists[playlist_key]
+        if playlist_key:
+            playlists = playlists[playlist_key]
+        return playlists
 
     @staticmethod
     def get_songs(url: str) -> dict:
@@ -33,8 +36,11 @@ class BBCSounds:
         page = requests.get(url)
         soup = BeautifulSoup(page.text, "html.parser")
         song_grid = soup.find(class_="programmes-page article--individual")
-        artists = [i.text.strip() for i in song_grid.find_all_next("a", class_="br-blocklink__link promotion__link")
-                   if not i.text.startswith("Tap here to listen to")]
+        artists = [
+            i.text.strip()
+            for i in song_grid.find_all_next("a", class_="br-blocklink__link promotion__link")
+            if not i.text.startswith("Tap here to listen to")
+        ]
         song_title = [
             i.text.strip() for i in song_grid.find_all_next("p", class_="promotion__synopsis centi text--subtle")
         ]
@@ -187,13 +193,42 @@ class Spotify:
         return song_id
 
 
+@click.command()
+@click.option(
+    "-k",
+    "--playlist-key",
+    type=click.Choice(list(BBCSounds.get_playlist_info().keys()), case_sensitive=False),
+    default="6music",
+    help="Playlist key to use from `bbc_playlists.toml`",
+)
+@click.option(
+    "-d",
+    "--date-prefix",
+    type=bool,
+    default=True,
+    help="Do you want to add a date prefix to be added to your spotify playlist?",
+)
+@click.option("-p", "--public-playlist", type=bool, default=True, help="Do you want to make your playlist public?")
+@click.option(
+    "-n",
+    "--custom-playlist-name",
+    default=None,
+    help="Use this if you don't want the default playlist name for the radio",
+)
 @logger.catch
-def main(playlist_key="6music", date_prefix=True, public_playlist=True):
+def main(playlist_key="6music", date_prefix=True, public_playlist=True, custom_playlist_name=None):
+    logger.info(f"Getting playlist for bbc playlist key {playlist_key}")
     playlist_info = BBCSounds.get_playlist_info(playlist_key)
+
+    if custom_playlist_name:
+        playlist_suffix = custom_playlist_name
+    else:
+        playlist_suffix = playlist_info["verbose_name"]
+
     songs = BBCSounds.get_songs(playlist_info["url"])
     spotify = Spotify()
-    spotify.main(playlist_info["verbose_name"], songs, date_prefix, public_playlist)
+    spotify.main(playlist_suffix, songs, date_prefix, public_playlist)
 
 
 if __name__ == "__main__":
-    main("radio1")
+    main()
