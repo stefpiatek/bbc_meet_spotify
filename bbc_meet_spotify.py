@@ -33,7 +33,8 @@ class BBCSounds:
         page = requests.get(url)
         soup = BeautifulSoup(page.text, "html.parser")
         song_grid = soup.find(class_="programmes-page article--individual")
-        artists = [i.text.strip() for i in song_grid.find_all_next("a", class_="br-blocklink__link promotion__link")]
+        artists = [i.text.strip() for i in song_grid.find_all_next("a", class_="br-blocklink__link promotion__link")
+                   if not i.text.startswith("Tap here to listen to")]
         song_title = [
             i.text.strip() for i in song_grid.find_all_next("p", class_="promotion__synopsis centi text--subtle")
         ]
