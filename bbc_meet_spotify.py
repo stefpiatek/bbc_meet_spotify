@@ -46,7 +46,7 @@ class BBCSounds:
         ]
         songs = [Song(artist, track_name) for track_name, artist in zip(song_title, artists)]
         # remove last item because this is an album
-        logger.info(f"Album of the day is is: {songs.pop(-1)}")
+        logger.info(f"Album of the day is: {songs.pop(-1)}")
         return songs
 
 
