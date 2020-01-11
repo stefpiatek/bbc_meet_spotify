@@ -59,8 +59,9 @@ The simplest usage is to use the default values `python bbc_meet_spotify.com`
 - Create a public playlist prefixed with today's date, e.g. `2020-01-11_BBC 6 Music`.
   If a playlist by this name already exists, it will just use this playlist.
 - Add all songs that it can find on spotify to the playlist if they aren't already in the playlist.
-    - If any songs can't be found, the logger will throw an error. For example: 
-        <span style="color:red">Could not find a song: \<Juniore: Ah Bah D Accord\></span>.
+    - If any songs can't be found, the song will be logged and you can add these manually.
+
+`2020-01-11 21:51:06.133 | ERROR    | __main__:_get_song_id:193 - Could not find a song: <Juniore: Ah Bah D Accord>`
     
 
 ### Command line options
