@@ -11,6 +11,7 @@ import toml
 from bs4 import BeautifulSoup
 from loguru import logger
 from spotipy import util
+from spotipy.client import SpotifyException
 
 
 class BBCSounds:
@@ -94,7 +95,7 @@ class Spotify:
         new_song_ids = [song_id for song_id in song_ids if song_id not in existing_songs]
         try:
             self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
-        except AttributeError as e:
+        except SpotifyException as e:
             logger.info(f"No new songs were added to the playlist")
 
     def get_spotify_token(self, config: dict) -> str:
