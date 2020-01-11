@@ -63,7 +63,7 @@ see their documentation if you need help using the command line options.
 
 You can view the command line options by `python bbc_meet_spotify.py --help`
 
-```bash
+```text
 Usage: bbc_meet_spotify.py [OPTIONS]
 
 Options:
