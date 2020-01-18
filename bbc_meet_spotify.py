@@ -1,13 +1,14 @@
 import re
 import time
 import unicodedata
+from enum import Enum
 from pathlib import Path
 from typing import List
 
-import click
 import requests
 import spotipy
 import toml
+import typer
 from bs4 import BeautifulSoup
 from loguru import logger
 from spotipy import util
@@ -194,32 +195,19 @@ class Spotify:
         return song_id
 
 
-@click.command()
-@click.option(
-    "-k",
-    "--playlist-key",
-    type=click.Choice(list(BBCSounds.get_playlist_info().keys()), case_sensitive=False),
-    default="6music",
-    help="Playlist key to use from `bbc_playlists.toml`",
-)
-@click.option(
-    "-d",
-    "--date-prefix",
-    type=bool,
-    default=True,
-    help="Do you want to add a date prefix to be added to your spotify playlist?",
-)
-@click.option("-p", "--public-playlist", type=bool, default=True, help="Do you want to make your playlist public?")
-@click.option(
-    "-n",
-    "--custom-playlist-name",
-    default=None,
-    help="Use this if you don't want the default playlist name for the radio",
-)
+class PlaylistChoices(str, Enum):
+    six_music = "six_music"
+    radio1 = "radio1"
+
+
 @logger.catch
-def main(playlist_key="6music", date_prefix=True, public_playlist=True, custom_playlist_name=None):
-    logger.info(f"Getting playlist for bbc playlist key {playlist_key}")
-    playlist_info = BBCSounds.get_playlist_info(playlist_key)
+def main(playlist_key: PlaylistChoices,
+         date_prefix: bool = typer.Option(True, help="Add a date prefix to be added to your spotify playlist?"),
+         public_playlist: bool = typer.Option(True, "--public-playlist/--private-playlist",
+                                              help="Spotify playlist settings"),
+         custom_playlist_name: str = typer.Option(None, "--custom-playlist-name", "-n", help="Set a custom name for playlist")):
+    logger.info(f"Getting playlist for bbc playlist key {playlist_key.value}")
+    playlist_info = BBCSounds.get_playlist_info(playlist_key.value)
 
     if custom_playlist_name:
         playlist_suffix = custom_playlist_name
@@ -232,4 +220,4 @@ def main(playlist_key="6music", date_prefix=True, public_playlist=True, custom_p
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

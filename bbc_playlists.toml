@@ -1,4 +1,4 @@
-[6music]
+[six_music]
     verbose_name = "BBC 6 Music"
     url= "https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist"
 [radio1]
