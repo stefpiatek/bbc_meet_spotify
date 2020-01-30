@@ -145,9 +145,7 @@ class Spotify:
         :return: list of song ids from spotify
         """
         song_ids = [self._get_song_id(song) for song in songs]
-        if None in song_ids:
-            song_ids.remove(None)
-        return song_ids
+        return list(filter(None, song_ids))
 
     def main(self, playlist_name, songs, add_date_prefix=True, public_playlist=True):
         """
