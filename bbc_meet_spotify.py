@@ -83,6 +83,7 @@ class Spotify:
         token = self.get_spotify_token(config)
         self.username = config["username"]
         self.spotify = spotipy.Spotify(auth=token)
+        self.song_not_found = False
 
     def add_songs_to_playlist(self, playlist_id: str, song_ids: List[str]):
         """
@@ -158,7 +159,12 @@ class Spotify:
         playlist_id = self.create_playlist(playlist_name, add_date_prefix, public_playlist)
         song_ids = self.get_song_ids(songs)
         self.add_songs_to_playlist(playlist_id, song_ids)
-        logger.info("All done, if you have any errors then you'll have to add these manually I'm afraid")
+
+        message_base = "All done!"
+        if self.song_not_found:
+            logger.info(f"{message_base} Couldn't find at least one song, you'll have to do this manually for now :(")
+        else:
+            logger.info(f"{message_base} No songs need to be added manually :)")
 
     def query_spotify(self, artist: str, song_title: str) -> str:
         """
@@ -190,6 +196,7 @@ class Spotify:
                 song_id = self.query_spotify(song.artist.replace("'", ""), song.song_title.replace("'", ""))
             except IndexError as e:
                 logger.error(f"Could not find a song: {song}", e)
+                self.song_not_found = True
         return song_id
 
 
