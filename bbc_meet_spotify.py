@@ -61,8 +61,8 @@ class Song:
     def __repr__(self):
         return f"<{self.artist}: {self.song_title}>"
 
-    @classmethod
-    def clean_string(cls, string):
+    @staticmethod
+    def clean_string(string):
         """
         Converts any accented character to the base type, leaves alphanumeric and apostrophes
         All other characters are replaced with whitespace
@@ -100,7 +100,8 @@ class Spotify:
         except SpotifyException as e:
             logger.info(f"No new songs were added to the playlist")
 
-    def get_spotify_token(self, config: dict) -> str:
+    @staticmethod
+    def get_spotify_token(config: dict) -> str:
         """
         If token isn't already generated, redirect to authorisation and then enter url to command line input
         :param config: configuration
@@ -211,7 +212,8 @@ def main(playlist_key: PlaylistChoices,
          date_prefix: bool = typer.Option(True, help="Add a date prefix to be added to your spotify playlist?"),
          public_playlist: bool = typer.Option(True, "--public-playlist/--private-playlist",
                                               help="Spotify playlist settings"),
-         custom_playlist_name: str = typer.Option(None, "--custom-playlist-name", "-n", help="Set a custom name for playlist")):
+         custom_playlist_name: str = typer.Option(None, "--custom-playlist-name", "-n",
+                                                  help="Set a custom name for playlist")):
     logger.info(f"Getting playlist for bbc playlist key {playlist_key.value}")
     playlist_info = BBCSounds.get_playlist_info(playlist_key.value)
 
