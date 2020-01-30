@@ -56,7 +56,7 @@ class Song:
     def __init__(self, artist, song_title):
         self.song_title = self.clean_string(song_title)
         artist = self.clean_string(artist)
-        self.artist = artist.split(" feat ")[0]
+        self.artist = artist.split(" feat.")[0]
 
     def __repr__(self):
         return f"<{self.artist}: {self.song_title}>"
@@ -72,7 +72,7 @@ class Song:
         new_string = "".join(
             [char for char in unicodedata.normalize("NFD", string) if unicodedata.category(char) != "Mn"]
         )
-        new_string = re.sub("[^A-Za-z0-9']+", " ", new_string)
+        new_string = re.sub("[^A-Za-z0-9.'’]+", " ", new_string)
         return new_string
 
 
@@ -193,7 +193,8 @@ class Spotify:
         except IndexError:
             # try fixing the strings with removing apostrophes
             try:
-                song_id = self.query_spotify(song.artist.replace("'", ""), song.song_title.replace("'", ""))
+                song_id = self.query_spotify(song.artist.replace("'", "").replace(".", ""),
+                                             song.song_title.replace("'", "").replace(".", ""))
             except IndexError as e:
                 logger.error(f"Could not find a song: {song}", e)
                 self.song_not_found = True
