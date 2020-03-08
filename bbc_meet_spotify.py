@@ -15,43 +15,6 @@ from spotipy import util
 from spotipy.client import SpotifyException
 
 
-class BBCSounds:
-    @staticmethod
-    def get_playlist_info(playlist_key: str = None) -> dict:
-        """
-        Get playlist information for requests playlist, if no playlist, returns the entire toml dictionary.
-        :param playlist_key: key in the toml file
-        :return: dictionary of url and verbose name for the playlist
-        """
-        playlists = toml.load(Path("./bbc_playlists.toml"))
-        if playlist_key:
-            playlists = playlists[playlist_key]
-        return playlists
-
-    @staticmethod
-    def get_songs(url: str) -> dict:
-        """
-        Get artist and song name from bbc sounds url
-        :param url: Url to scrape tracks from
-        :return: List of songs
-        """
-        page = requests.get(url)
-        soup = BeautifulSoup(page.text, "html.parser")
-        song_grid = soup.find(class_="programmes-page article--individual")
-        artists = [
-            i.text.strip()
-            for i in song_grid.find_all_next("a", class_="br-blocklink__link promotion__link")
-            if not i.text.startswith("Tap here to listen to")
-        ]
-        song_title = [
-            i.text.strip() for i in song_grid.find_all_next("p", class_="promotion__synopsis centi text--subtle")
-        ]
-        songs = [Song(artist, track_name) for track_name, artist in zip(song_title, artists)]
-        # remove last item because this is an album
-        logger.info(f"Album of the day is {songs.pop(-1).get_track_string()}")
-        return songs
-
-
 class Song:
     def __init__(self, artist, song_title):
         self.song_title = self.clean_string(song_title)
@@ -78,6 +41,43 @@ class Song:
         )
         new_string = re.sub("[^A-Za-z0-9.'’]+", " ", new_string)
         return new_string
+
+
+class BBCSounds:
+    @staticmethod
+    def get_playlist_info(playlist_key: str = None) -> dict:
+        """
+        Get playlist information for requests playlist, if no playlist, returns the entire toml dictionary.
+        :param playlist_key: key in the toml file
+        :return: dictionary of url and verbose name for the playlist
+        """
+        playlists = toml.load(Path("./bbc_playlists.toml"))
+        if playlist_key:
+            playlists = playlists[playlist_key]
+        return playlists
+
+    @staticmethod
+    def get_songs(url: str) -> List[Song]:
+        """
+        Get artist and song name from bbc sounds url
+        :param url: Url to scrape tracks from
+        :return: List of songs
+        """
+        page = requests.get(url)
+        soup = BeautifulSoup(page.text, "html.parser")
+        song_grid = soup.find(class_="programmes-page article--individual")
+        artists = [
+            i.text.strip()
+            for i in song_grid.find_all_next("a", class_="br-blocklink__link promotion__link")
+            if not i.text.startswith("Tap here to listen to")
+        ]
+        song_title = [
+            i.text.strip() for i in song_grid.find_all_next("p", class_="promotion__synopsis centi text--subtle")
+        ]
+        songs = [Song(artist, track_name) for track_name, artist in zip(song_title, artists)]
+        # remove last item because this is an album
+        logger.info(f"Album of the day is {songs.pop(-1).get_track_string()}")
+        return songs
 
 
 class Spotify:
