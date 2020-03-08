@@ -101,7 +101,7 @@ class Spotify:
         new_song_ids = [song_id for song_id in song_ids if song_id not in existing_songs]
         try:
             self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
-        except SpotifyException as e:
+        except SpotifyException:
             logger.info(f"No new songs were added to the playlist")
 
     @staticmethod
@@ -203,7 +203,7 @@ class Spotify:
             try:
                 song_id = self.query_spotify(song.artist.replace("'", "").replace(".", ""),
                                              song.song_title.replace("'", "").replace(".", ""))
-            except IndexError as e:
+            except IndexError:
                 self.songs_not_found.append(f"{song.get_track_string()}")
         return song_id
 
