@@ -48,7 +48,7 @@ class BBCSounds:
         ]
         songs = [Song(artist, track_name) for track_name, artist in zip(song_title, artists)]
         # remove last item because this is an album
-        logger.info(f"Album of the day is: {songs.pop(-1)}")
+        logger.info(f"Album of the day is {songs.pop(-1).get_track_string()}")
         return songs
 
 
@@ -59,7 +59,11 @@ class Song:
         self.artist = artist.split(" feat.")[0]
 
     def __repr__(self):
-        return f"<{self.artist}: {self.song_title}>"
+        return f"<{self.get_track_string()}>"
+
+    def get_track_string(self):
+        """Get string value for track"""
+        return f"{self.artist}: {self.song_title}"
 
     @staticmethod
     def clean_string(string):
@@ -83,7 +87,7 @@ class Spotify:
         token = self.get_spotify_token(config)
         self.username = config["username"]
         self.spotify = spotipy.Spotify(auth=token)
-        self.song_not_found = False
+        self.songs_not_found = []
 
     def add_songs_to_playlist(self, playlist_id: str, song_ids: List[str]):
         """
@@ -162,8 +166,11 @@ class Spotify:
         self.add_songs_to_playlist(playlist_id, song_ids)
 
         message_base = "All done!"
-        if self.song_not_found:
-            logger.info(f"{message_base} Couldn't find at least one song, you'll have to do this manually for now :(")
+        if self.songs_not_found:
+            manual_songs = "\n\t".join(self.songs_not_found)
+            logger.info(f"{message_base}\n"
+                        f"Couldn't find the following songs,  you'll have to do this manually for now :(\n\t"
+                        f"{manual_songs}")
         else:
             logger.info(f"{message_base} No songs need to be added manually :)")
 
@@ -197,8 +204,7 @@ class Spotify:
                 song_id = self.query_spotify(song.artist.replace("'", "").replace(".", ""),
                                              song.song_title.replace("'", "").replace(".", ""))
             except IndexError as e:
-                logger.error(f"Could not find a song: {song}", e)
-                self.song_not_found = True
+                self.songs_not_found.append(f"{song.get_track_string()}")
         return song_id
 
 
