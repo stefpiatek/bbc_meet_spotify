@@ -169,10 +169,10 @@ class Spotify:
         if self.songs_not_found:
             manual_songs = "\n\t".join(self.songs_not_found)
             logger.info(f"{message_base}\n"
-                        f"Couldn't find the following songs,  you'll have to do this manually for now :(\n\t"
+                        f"Couldn't find the following songs,  you'll have to do this manually for now 😥\n\t"
                         f"{manual_songs}")
         else:
-            logger.info(f"{message_base} No songs need to be added manually :)")
+            logger.info(f"{message_base} No songs need to be added manually 🥳")
 
     def query_spotify(self, artist: str, song_title: str) -> str:
         """
