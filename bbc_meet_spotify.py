@@ -57,12 +57,17 @@ class BBCSounds:
         return playlists
 
     @staticmethod
-    def get_songs(url: str) -> List[Song]:
+    def get_songs(url: str, only_new: bool) -> List[Song]:
         """
         Get artist and song name from bbc sounds url
         :param url: Url to scrape tracks from
         :return: List of songs
         """
+        if only_new:
+            song_tag = "strong"
+        else:
+            song_tag = "p"
+
         page = requests.get(url)
         soup = BeautifulSoup(page.text, "html.parser")
         # go to after C list and then get all of the tracks before
@@ -72,7 +77,7 @@ class BBCSounds:
 
         track_strings = [
             (i.text.strip().split(" - "))
-            for i in header.find_all_previous("p")
+            for i in header.find_all_previous(song_tag)
             if " - " in i.text
         ]
 
@@ -219,7 +224,10 @@ def main(playlist_key: PlaylistChoices,
          public_playlist: bool = typer.Option(True, "--public-playlist/--private-playlist",
                                               help="Spotify playlist settings"),
          custom_playlist_name: str = typer.Option(None, "--custom-playlist-name", "-n",
-                                                  help="Set a custom name for playlist")):
+                                                  help="Set a custom name for playlist"),
+         only_new: bool = typer.Option(False, "--new-only",
+                                       help="Only add new songs to to playlist"),
+         ):
     logger.info(f"Getting playlist for bbc playlist key {playlist_key.value}")
     playlist_info = BBCSounds.get_playlist_info(playlist_key.value)
 
@@ -228,7 +236,7 @@ def main(playlist_key: PlaylistChoices,
     else:
         playlist_suffix = playlist_info["verbose_name"]
 
-    songs = BBCSounds.get_songs(playlist_info["url"])
+    songs = BBCSounds.get_songs(playlist_info["url"], only_new=only_new)
     spotify = Spotify()
     spotify.main(playlist_suffix, songs, date_prefix, public_playlist)
 
