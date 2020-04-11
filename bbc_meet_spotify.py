@@ -65,18 +65,18 @@ class BBCSounds:
         """
         page = requests.get(url)
         soup = BeautifulSoup(page.text, "html.parser")
-        song_grid = soup.find(class_="programmes-page article--individual")
-        artists = [
-            i.text.strip()
-            for i in song_grid.find_all_next("a", class_="br-blocklink__link promotion__link")
-            if not i.text.startswith("Tap here to listen to")
+        # go to after C list and then get all of the tracks before
+        header = soup.find(class_="beta")
+        for _ in ["B list", "C list", "Album of the day"]:
+            header = header.find_next(class_="beta")
+
+        track_strings = [
+            (i.text.strip().split(" - "))
+            for i in header.find_all_previous("p")
+            if " - " in i.text
         ]
-        song_title = [
-            i.text.strip() for i in song_grid.find_all_next("p", class_="promotion__synopsis centi text--subtle")
-        ]
-        songs = [Song(artist, track_name) for track_name, artist in zip(song_title, artists)]
-        # remove last item because this is an album
-        logger.info(f"Album of the day is {songs.pop(-1).get_track_string()}")
+
+        songs = [Song(artist, song_name) for artist, song_name in track_strings]
         return songs
 
 
