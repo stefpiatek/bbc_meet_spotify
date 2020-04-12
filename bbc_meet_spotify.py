@@ -74,12 +74,14 @@ class BBCSounds:
         header = soup.find(class_="beta")
         for _ in ["B list", "C list", "Album of the day"]:
             header = header.find_next(class_="beta")
-
-        track_strings = [
-            (i.text.strip().split(" - "))
-            for i in header.find_all_previous(song_tag)
-            if " - " in i.text
-        ]
+        track_strings = []
+        # can be separated by dashes or hyphens
+        for separator in [" – ", " - "]:
+            track_strings.extend([
+                (i.text.strip().split(separator))
+                for i in header.find_all_previous(song_tag)
+                if separator in i.text
+            ])
 
         songs = [Song(artist, song_name) for artist, song_name in track_strings]
         return songs
