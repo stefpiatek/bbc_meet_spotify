@@ -3,7 +3,7 @@ Simple tool to convert BBC radio station playlists into spotify playists
 
 ## Why
 
-BBC used to be friendly for spotify users and create spotify playlists of their A, B and C-list songs for that week.
+BBC used to be friendly for spotify users and create spotify playlists of their A-, B- and C-list songs for that week.
 It looks like when they moved everything to BBC Sounds, that they wanted to make people use it, so stopped putting
 their playlists on Spotify. This is a low effort way to get those playlists back on spotify.
 
@@ -61,7 +61,10 @@ The first time you use this, your internet browser will open a page following th
 ### Overview of actions taken
 
 - The command above will get all songs from the BBC 6 Music playlist page
-- Create a public playlist prefixed with today's date, e.g. `2020-01-11_BBC 6 Music`.
+- If this playlist has been run before, and the date prefix cli argument wasn't used,
+  check the history (`playlist_history/BBC 6 Music.toml`) and only get the new songs.
+  This also saves the full history back to the toml file for the next time it's run. 
+- Create a public playlist e.g. `BBC 6 Music`.
   If a playlist by this name already exists, it will just use this playlist.
 - Add all songs that it can find on spotify to the playlist if they aren't already in the playlist.
     - If any songs can't be found, the song will be logged and you can add these manually.
@@ -95,6 +98,6 @@ Show                                   spotify playlist?  [default: False]
 The default command line options with the `six_music` are equivalent to calling: 
 
 ```bash
-python bbc_meet_spotify.py --date-prefix --public-playlist six_music
+python bbc_meet_spotify.py --no-date-prefix --public-playlist six_music
 ```
 

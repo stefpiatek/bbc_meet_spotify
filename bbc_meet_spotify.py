@@ -99,6 +99,9 @@ class BBCSounds:
         - Compares against previous scraping for the playlist name if this has been done before
         - Writes out history of all songs for this playlist to playlist_history directory
 
+        (It was a pain to have spotify singles and album versions become duplicates for songs, so filtering at the
+        BBC sounds stage made more sense)
+
         :return: list of new Songs
         """
         # get all bbc sounds songs
