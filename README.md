@@ -84,9 +84,9 @@ Usage: bbc_meet_spotify.py [OPTIONS] [six_music|radio1]
 Options:
   --date-prefix / --no-date-prefix
                                   Add a date prefix to be added to your
-                                  spotify playlist?
+Show                                   spotify playlist?  [default: False]
   --public-playlist / --private-playlist
-                                  Spotify playlist settings
+                                  Spotify playlist settings  [default: True]
   -n, --custom-playlist-name TEXT
                                   Set a custom name for playlist
   --help                          Show this message and exit.
