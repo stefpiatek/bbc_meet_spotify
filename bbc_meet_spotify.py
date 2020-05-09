@@ -44,13 +44,16 @@ class Song:
 
 
 class BBCSounds:
-    def __init__(self, playlist_key: str, playlist_name: str = None):
+    def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None):
+        """Builds playlist name and gets playlist url from bbc_playists.toml"""
         playlist = self.get_playlist_info(playlist_key)
         self.url = playlist["url"]
+        self.date_prefix = date_prefix
         if playlist_name:
             self.playlist_suffix = playlist_name
         else:
             self.playlist_suffix = playlist["verbose_name"]
+
 
     def get_playlist_info(self, playlist_key: str) -> dict:
         """
@@ -89,9 +92,12 @@ class BBCSounds:
         songs = {artist: song_name for artist, song_name in track_strings}
         return songs
 
-    def get_new_songs(self) -> List[Song]:
-        """Gets new songs from bbc sounds url
-        Compares against previous scraping for the playlist name if this has been done before
+    def get_songs(self) -> List[Song]:
+        """Gets songs from bbc sounds url,
+
+        If BBC Sounds was initialised with a date_prefix = false:
+        - Compares against previous scraping for the playlist name if this has been done before
+        - Writes out history of all songs for this playlist to playlist_history directory
 
         :return: list of new Songs
         """
@@ -100,7 +106,7 @@ class BBCSounds:
 
         # get previous songs in playlist
         playlist_history = Path("playlist_history", f"{self.playlist_suffix}.toml")
-        if not playlist_history.exists():
+        if not playlist_history.exists() or self.date_prefix:
             previous_songs = defaultdict(list)
         else:
             previous_songs = defaultdict(list, toml.load(playlist_history))
@@ -113,9 +119,10 @@ class BBCSounds:
         for artist, song_name in new_songs.items():
             previous_songs[artist].append(song_name)
 
-        # write list of new songs to file
-        with open(playlist_history, "w") as handle:
-            toml.dump(previous_songs, handle)
+        # write history of songs to file if not a date-prefixed playlist
+        if not self.date_prefix:
+            with open(playlist_history, "w") as handle:
+                toml.dump(previous_songs, handle)
 
         # return list of Songs
         return [Song(artist, song_name) for artist, song_name in new_songs.items()]
@@ -256,16 +263,19 @@ class PlaylistChoices(str, Enum):
 
 @logger.catch
 def main(playlist_key: PlaylistChoices,
-         date_prefix: bool = typer.Option(True, help="Add a date prefix to be added to your spotify playlist?"),
+         date_prefix: bool = typer.Option(False,
+                                          help="Add a date prefix to be added to your spotify playlist?",
+                                          show_default=True),
          public_playlist: bool = typer.Option(True, "--public-playlist/--private-playlist",
-                                              help="Spotify playlist settings"),
+                                              help="Spotify playlist settings",
+                                              show_default=True),
          custom_playlist_name: str = typer.Option(None, "--custom-playlist-name", "-n",
                                                   help="Set a custom name for playlist")
          ):
     logger.info(f"Getting playlist for bbc playlist key {playlist_key.value}")
-    bbc_sounds = BBCSounds(playlist_key.value, custom_playlist_name)
+    bbc_sounds = BBCSounds(playlist_key.value, date_prefix, custom_playlist_name)
 
-    songs = bbc_sounds.get_new_songs()
+    songs = bbc_sounds.get_songs()
     spotify = Spotify()
     spotify.main(bbc_sounds.playlist_suffix, songs, date_prefix, public_playlist)
 
