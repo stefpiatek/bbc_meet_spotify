@@ -89,7 +89,6 @@ Options:
                                   Spotify playlist settings
   -n, --custom-playlist-name TEXT
                                   Set a custom name for playlist
-  --new-only                      Only add new songs to to playlist
   --help                          Show this message and exit.
 ```
 

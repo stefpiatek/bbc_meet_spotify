@@ -1,9 +1,10 @@
 import re
 import time
 import unicodedata
+from collections import defaultdict
 from enum import Enum
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 import requests
 import spotipy
@@ -43,10 +44,17 @@ class Song:
 
 
 class BBCSounds:
-    @staticmethod
-    def get_playlist_info(playlist_key: str = None) -> dict:
+    def __init__(self, playlist_key: str, playlist_name: str = None):
+        playlist = self.get_playlist_info(playlist_key)
+        self.url = playlist["url"]
+        if playlist_name:
+            self.playlist_suffix = playlist_name
+        else:
+            self.playlist_suffix = playlist["verbose_name"]
+
+    def get_playlist_info(self, playlist_key: str) -> dict:
         """
-        Get playlist information for requests playlist, if no playlist, returns the entire toml dictionary.
+        Get playlist information for requests playlist
         :param playlist_key: key in the toml file
         :return: dictionary of url and verbose name for the playlist
         """
@@ -55,25 +63,21 @@ class BBCSounds:
             playlists = playlists[playlist_key]
         return playlists
 
-    @staticmethod
-    def get_songs(url: str, only_new: bool) -> List[Song]:
+    def _scrape_bbc_sounds(self) -> Dict[str, str]:
         """
-        Get artist and song name from bbc sounds url
-        :param url: Url to scrape tracks from
-        :return: List of songs
+        Get all artist and song names from bbc sounds url
+        :return: List of songs in {artist: song_name}
         """
-        if only_new:
-            song_tag = "strong"
-        else:
-            song_tag = "p"
 
-        page = requests.get(url)
+        page = requests.get(self.url)
         soup = BeautifulSoup(page.text, "html.parser")
         # go to after C list and then get all of the tracks before
         header = soup.find(class_="beta")
         for _ in ["B list", "C list", "Album of the day"]:
             header = header.find_next(class_="beta")
+
         track_strings = []
+        song_tag = "p"
         # can be separated by dashes or hyphens
         for separator in [" – ", " - "]:
             track_strings.extend([
@@ -82,8 +86,39 @@ class BBCSounds:
                 if separator in i.text
             ])
 
-        songs = [Song(artist, song_name) for artist, song_name in track_strings]
+        songs = {artist: song_name for artist, song_name in track_strings}
         return songs
+
+    def get_new_songs(self) -> List[Song]:
+        """Gets new songs from bbc sounds url
+        Compares against previous scraping for the playlist name if this has been done before
+
+        :return: list of new Songs
+        """
+        # get all bbc sounds songs
+        current_songs = self._scrape_bbc_sounds()
+
+        # get previous songs in playlist
+        playlist_history = Path("playlist_history", f"{self.playlist_suffix}.toml")
+        if not playlist_history.exists():
+            previous_songs = defaultdict(list)
+        else:
+            previous_songs = defaultdict(list, toml.load(playlist_history))
+
+        # remove songs which have already been seen in previous versions of bbc sounds
+        new_songs = {artist: song_name for artist, song_name in current_songs.items()
+                     if song_name not in previous_songs[artist]}
+
+        # merge new songs with previous songs
+        for artist, song_name in new_songs.items():
+            previous_songs[artist].append(song_name)
+
+        # write list of new songs to file
+        with open(playlist_history, "w") as handle:
+            toml.dump(previous_songs, handle)
+
+        # return list of Songs
+        return [Song(artist, song_name) for artist, song_name in new_songs.items()]
 
 
 class Spotify:
@@ -225,21 +260,14 @@ def main(playlist_key: PlaylistChoices,
          public_playlist: bool = typer.Option(True, "--public-playlist/--private-playlist",
                                               help="Spotify playlist settings"),
          custom_playlist_name: str = typer.Option(None, "--custom-playlist-name", "-n",
-                                                  help="Set a custom name for playlist"),
-         only_new: bool = typer.Option(False, "--new-only",
-                                       help="Only add new songs to to playlist"),
+                                                  help="Set a custom name for playlist")
          ):
     logger.info(f"Getting playlist for bbc playlist key {playlist_key.value}")
-    playlist_info = BBCSounds.get_playlist_info(playlist_key.value)
+    bbc_sounds = BBCSounds(playlist_key.value, custom_playlist_name)
 
-    if custom_playlist_name:
-        playlist_suffix = custom_playlist_name
-    else:
-        playlist_suffix = playlist_info["verbose_name"]
-
-    songs = BBCSounds.get_songs(playlist_info["url"], only_new=only_new)
+    songs = bbc_sounds.get_new_songs()
     spotify = Spotify()
-    spotify.main(playlist_suffix, songs, date_prefix, public_playlist)
+    spotify.main(bbc_sounds.playlist_suffix, songs, date_prefix, public_playlist)
 
 
 if __name__ == "__main__":
