@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from bbc_meet_spotify import BBCSounds, Song
+from bbc_meet_spotify import BBCSounds
 
 
 def test_all_songs_parsed():
@@ -12,7 +12,8 @@ def test_all_songs_parsed():
 
     output_songs = bbc_sounds.get_songs()
     assert len(output_songs) == 33
-    #assert output_songs[0] == Song( )
 
-
+    # test first song
+    assert output_songs[0].artist == "Becca Mancari"
+    assert output_songs[0].song_title == "Hunter"
 

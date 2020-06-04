@@ -92,6 +92,8 @@ class BBCSounds:
                 if separator in i.text
             ])
 
+        # reverse tracks because we built them from the bottom up
+        track_strings.reverse()
         songs = {artist: song_name for artist, song_name in track_strings}
         return songs
 
