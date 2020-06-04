@@ -1,15 +1,9 @@
-from enum import Enum
-
 import typer
 from loguru import logger
 from spotipy import Spotify
 
+from bbc_meet_spotify.playlist_parsing import PlaylistChoices
 from . import BBCSounds, Spotify, __version__
-
-
-class PlaylistChoices(str, Enum):
-    six_music = "six_music"
-    radio1 = "radio1"
 
 
 def version_callback(value: bool):
