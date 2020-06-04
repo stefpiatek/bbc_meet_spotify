@@ -43,28 +43,27 @@ class Song:
         return new_string.split(" feat.")[0]
 
 
+def get_playlist_info(playlist_key: str) -> Dict[str, str]:
+    """
+    Get playlist information for requests playlist
+    :param playlist_key: key in the toml file
+    :return: dictionary of url and verbose name for the playlist
+    """
+    playlists = toml.load(Path("./bbc_playlists.toml"))
+    if playlist_key:
+        playlists = playlists[playlist_key]
+    return playlists
+
+
 class BBCSounds:
-    def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None):
-        """Builds playlist name and gets playlist url from bbc_playists.toml"""
-        playlist = self.get_playlist_info(playlist_key)
-        self.url = playlist["url"]
+    def __init__(self, url: str, playlist_name: str, date_prefix: bool):
+        """Builds playlist name and gets playlist url from bbc_playists.toml
+
+        If no date prefix is false, all songs are added. Otherwise
+        """
+        self.url = url
         self.date_prefix = date_prefix
-        if playlist_name:
-            self.playlist_suffix = playlist_name
-        else:
-            self.playlist_suffix = playlist["verbose_name"]
-
-
-    def get_playlist_info(self, playlist_key: str) -> dict:
-        """
-        Get playlist information for requests playlist
-        :param playlist_key: key in the toml file
-        :return: dictionary of url and verbose name for the playlist
-        """
-        playlists = toml.load(Path("./bbc_playlists.toml"))
-        if playlist_key:
-            playlists = playlists[playlist_key]
-        return playlists
+        self.playlist_suffix = playlist_name
 
     def _scrape_bbc_sounds(self) -> Dict[str, str]:
         """
@@ -276,7 +275,12 @@ def main(playlist_key: PlaylistChoices,
                                                   help="Set a custom name for playlist")
          ):
     logger.info(f"Getting playlist for bbc playlist key {playlist_key.value}")
-    bbc_sounds = BBCSounds(playlist_key.value, date_prefix, custom_playlist_name)
+    selected_playlist = get_playlist_info(playlist_key.value)
+    playlist_name = custom_playlist_name
+    if not custom_playlist_name:
+        playlist_name = selected_playlist["verbose_name"]
+
+    bbc_sounds = BBCSounds(selected_playlist["url"], playlist_name, date_prefix)
 
     songs = bbc_sounds.get_songs()
     spotify = Spotify()
