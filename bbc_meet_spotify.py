@@ -12,6 +12,7 @@ import toml
 import typer
 from bs4 import BeautifulSoup
 from loguru import logger
+from requests.exceptions import MissingSchema
 from spotipy import util
 from spotipy.client import SpotifyException
 
@@ -70,9 +71,12 @@ class BBCSounds:
         Get all artist and song names from bbc sounds url
         :return: List of songs in {artist: song_name}
         """
-
-        page = requests.get(self.url)
-        soup = BeautifulSoup(page.text, "html.parser")
+        try:
+            page = requests.get(self.url)
+            soup = BeautifulSoup(page.text, "html.parser")
+        except MissingSchema:
+            # Doesn't seem to be a website, assume it's a local test file
+            soup = BeautifulSoup(open(self.url).read())
         # go to after C list and then get all of the tracks before
         header = soup.find(class_="beta")
         for _ in ["B list", "C list", "Album of the day"]:
