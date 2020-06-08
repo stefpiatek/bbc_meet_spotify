@@ -3,7 +3,7 @@ from loguru import logger
 from spotipy import Spotify
 
 from bbc_meet_spotify.playlist_parsing import PlaylistChoices
-from . import BBCSounds, Spotify, __version__
+from bbc_meet_spotify import BBCSounds, Spotify, __version__
 
 
 def version_callback(value: bool):

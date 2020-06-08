@@ -8,7 +8,7 @@ from loguru import logger
 from spotipy import util
 from spotipy.client import SpotifyException
 
-from .common import Song
+from bbc_meet_spotify.songs import Song
 
 class Spotify:
     def __init__(self):

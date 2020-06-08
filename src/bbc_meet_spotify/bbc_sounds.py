@@ -6,7 +6,7 @@ import requests
 import toml
 from bs4 import BeautifulSoup
 
-from .songs import Song
+from bbc_meet_spotify.songs import Song
 
 
 class BBCSounds:
