@@ -19,6 +19,10 @@ class BBCSounds:
             self.playlist_suffix = playlist_name
         else:
             self.playlist_suffix = playlist["verbose_name"]
+        if playlist["type"] == "playlist":
+            self.scraper = PlaylistScraper()
+        elif playlist["type"] == "show":
+            self.scraper = ShowScraper()
 
     def get_playlist_info(self, playlist_key: str) -> dict:
         """
@@ -30,32 +34,6 @@ class BBCSounds:
         if playlist_key:
             playlists = playlists[playlist_key]
         return playlists
-
-    def _scrape_bbc_sounds(self) -> Dict[str, str]:
-        """
-        Get all artist and song names from bbc sounds url
-        :return: List of songs in {artist: song_name}
-        """
-
-        page = requests.get(self.url)
-        soup = BeautifulSoup(page.text, "html.parser")
-        # go to after C list and then get all of the tracks before
-        header = soup.find(class_="beta")
-        for _ in ["B list", "C list", "Album of the day"]:
-            header = header.find_next(class_="beta")
-
-        track_strings = []
-        song_tag = "p"
-        # can be separated by dashes or hyphens
-        for separator in [" – ", " - "]:
-            track_strings.extend([
-                (i.text.strip().split(separator))
-                for i in header.find_all_previous(song_tag)
-                if separator in i.text
-            ])
-
-        songs = {artist: song_name for artist, song_name in track_strings}
-        return songs
 
     def get_songs(self) -> List[Song]:
         """Gets songs from bbc sounds url,
@@ -70,7 +48,7 @@ class BBCSounds:
         :return: list of new Songs
         """
         # get all bbc sounds songs
-        current_songs = self._scrape_bbc_sounds()
+        current_songs = self.scraper.scrape_bbc_sounds(self.url)
 
         # get previous songs in playlist
         playlist_history = Path("playlist_history", f"{self.playlist_suffix}.toml")
@@ -96,3 +74,35 @@ class BBCSounds:
         return [Song(artist, song_name) for artist, song_name in new_songs.items()]
 
 
+class ShowScraper:
+    @staticmethod
+    def scrape_bbc_sounds(url) -> Dict[str, str]:
+        pass
+
+
+class PlaylistScraper:
+    @staticmethod
+    def scrape_bbc_sounds(url) -> Dict[str, str]:
+        """
+        Get all artist and song names from bbc sounds url
+        :return: List of songs in {artist: song_name}
+        """
+        page = requests.get(url)
+        soup = BeautifulSoup(page.text, "html.parser")
+        # go to after C list and then get all of the tracks before
+        header = soup.find(class_="beta")
+        for _ in ["B list", "C list", "Album of the day"]:
+            header = header.find_next(class_="beta")
+
+        track_strings = []
+        song_tag = "p"
+        # can be separated by dashes or hyphens
+        for separator in [" – ", " - "]:
+            track_strings.extend([
+                (i.text.strip().split(separator))
+                for i in header.find_all_previous(song_tag)
+                if separator in i.text
+            ])
+
+        songs = {artist: song_name for artist, song_name in track_strings}
+        return songs
