@@ -81,11 +81,11 @@ class BBCSounds:
 
         # remove songs which have already been seen in previous versions of bbc sounds
         new_songs = {artist: song_name for artist, song_name in current_songs.items()
-                     if song_name not in previous_songs[artist]}
+                     if song_name.lower() not in previous_songs[artist.lower()]}
 
         # merge new songs with previous songs
         for artist, song_name in new_songs.items():
-            previous_songs[artist].append(song_name)
+            previous_songs[artist.lower()].append(song_name.lower())
 
         # write history of songs to file if not a date-prefixed playlist
         if not self.date_prefix:
