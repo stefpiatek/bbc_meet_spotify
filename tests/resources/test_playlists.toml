@@ -1,0 +1,5 @@
+[six_music]
+    verbose_name = "BBC 6 Music"
+    url = "tests/resources/bbc_sounds_6music.html"
+    type = "playlist"
+

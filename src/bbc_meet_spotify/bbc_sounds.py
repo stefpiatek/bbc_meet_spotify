@@ -4,15 +4,15 @@ from typing import Dict, List
 
 import requests
 import toml
-from bs4 import BeautifulSoup
-
 from bbc_meet_spotify.songs import Song
+from bs4 import BeautifulSoup
 
 
 class BBCSounds:
-    def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None):
+    def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None,
+                 toml_path: Path = Path("./bbc_playlists.toml")):
         """Builds playlist name and gets playlist url from bbc_playists.toml"""
-        playlist = self.get_playlist_info(playlist_key)
+        playlist = self.get_playlist_info(playlist_key, toml_path)
         self.url = playlist["url"]
         self.date_prefix = date_prefix
         if playlist_name:
@@ -24,13 +24,14 @@ class BBCSounds:
         elif playlist["type"] == "show":
             self.scraper = ShowScraper()
 
-    def get_playlist_info(self, playlist_key: str) -> dict:
+    def get_playlist_info(self, playlist_key: str, toml_path: Path) -> dict:
         """
         Get playlist information for requests playlist
+        :param toml_path: path for toml for playlists
         :param playlist_key: key in the toml file
         :return: dictionary of url and verbose name for the playlist
         """
-        playlists = toml.load(Path("./bbc_playlists.toml"))
+        playlists = toml.load(toml_path)
         if playlist_key:
             playlists = playlists[playlist_key]
         return playlists
@@ -82,13 +83,19 @@ class ShowScraper:
 
 class PlaylistScraper:
     @staticmethod
-    def scrape_bbc_sounds(url) -> Dict[str, str]:
+    def scrape_bbc_sounds(url: str) -> Dict[str, str]:
         """
         Get all artist and song names from bbc sounds url
         :return: List of songs in {artist: song_name}
         """
-        page = requests.get(url)
-        soup = BeautifulSoup(page.text, "html.parser")
+        if url.startswith("http"):
+            page = requests.get(url)
+            soup = BeautifulSoup(page.text, "html.parser")
+        else:
+            with open(url) as handle:
+                page = handle.read()
+            soup = BeautifulSoup(page, "html.parser")
+
         # go to after C list and then get all of the tracks before
         header = soup.find(class_="beta")
         for _ in ["B list", "C list", "Album of the day"]:
