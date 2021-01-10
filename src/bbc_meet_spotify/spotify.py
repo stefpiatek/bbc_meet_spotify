@@ -31,8 +31,8 @@ class Spotify:
         new_song_ids = [song_id for song_id in song_ids if song_id not in existing_songs]
         try:
             self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
-        except SpotifyException:
-            logger.info(f"No new songs were added to the playlist")
+        except SpotifyException as e:
+            logger.info(f"No new songs were added to the playlist\n{e}")
 
     @staticmethod
     def get_spotify_token(config: dict) -> str:
