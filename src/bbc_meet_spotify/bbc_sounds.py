@@ -74,28 +74,36 @@ class BBCSounds:
         # return list of Songs
         return [Song(artist, song_name) for artist, song_name in new_songs.items()]
 
-
-class ShowScraper:
+class ScraperBase:
     @staticmethod
-    def scrape_bbc_sounds(url) -> Dict[str, str]:
-        pass
-
-
-class PlaylistScraper:
-    @staticmethod
-    def scrape_bbc_sounds(url: str) -> Dict[str, str]:
+    def read_html(url: str) -> BeautifulSoup:
         """
-        Get all artist and song names from bbc sounds url
-        :return: List of songs in {artist: song_name}
+        Opens url or file path.
+        :param url: url/file path to open
+        :return: beautiful soup object of the html
         """
-        if url.startswith("http"):
+        if url.startswith("http") or url.startswith("www."):
             page = requests.get(url)
             soup = BeautifulSoup(page.text, "html.parser")
         else:
             with open(url) as handle:
                 page = handle.read()
             soup = BeautifulSoup(page, "html.parser")
+        return soup
 
+
+class ShowScraper(ScraperBase):
+    def scrape_bbc_sounds(self, url) -> Dict[str, str]:
+        soup = self.read_html(url)
+
+
+class PlaylistScraper(ScraperBase):
+    def scrape_bbc_sounds(self, url: str) -> Dict[str, str]:
+        """
+        Get all artist and song names from bbc sounds url
+        :return: List of songs in {artist: song_name}
+        """
+        soup = self.read_html(url)
         # go to after C list and then get all of the tracks before
         header = soup.find(class_="beta")
         for _ in ["B list", "C list", "Album of the day"]:

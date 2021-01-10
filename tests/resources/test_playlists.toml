@@ -1,5 +1,8 @@
 [six_music]
     verbose_name = "BBC 6 Music"
-    url = "tests/resources/bbc_sounds_6music.html"
+    url = "resources/bbc_sounds_6music.html"
     type = "playlist"
-
+[dance_party_2021]
+    verbose_name = "BBC Dance Party 2021"
+    url = "resources/dance-party-2021_1.html"
+    type = "show"

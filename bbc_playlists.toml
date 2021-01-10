@@ -10,3 +10,11 @@
     verbose_name = "BBC Dance Anthems"
     url = "https://www.bbc.co.uk/programmes/m000qj2w"
     type = "show"
+[dance_party_2020]
+    verbose_name = "BBC Dance Party 2020"
+    url = "https://www.bbc.co.uk/programmes/m000cmjr"
+    type = "show"
+[dance_party_2021]
+    verbose_name = "BBC Dance Party 2021"
+    url = "https://www.bbc.co.uk/programmes/m000qx9p"
+    type = "show"
