@@ -41,4 +41,5 @@ class TestPlaylistParsing:
         # check multiple artist doesn't break it
         assert output_songs[1].song_title == "I Remember"
         assert output_songs[2].song_title == "Channel 43"
+        assert output_songs[5].song_title == "Hands In The Air"
 

@@ -95,7 +95,7 @@ class ScraperBase:
 class ShowScraper(ScraperBase):
     def scrape_bbc_sounds(self, url) -> Dict[str, str]:
         soup = self.read_html(url)
-        tracks = soup.find_all(class_="segment__track")
+        tracks = soup.find_all(class_="segment__content")
         songs = {}
         for track in tracks:
             artist = ", ".join(x.text for x in track.find_all("span", class_="artist"))
