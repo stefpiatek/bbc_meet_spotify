@@ -98,7 +98,8 @@ class ShowScraper(ScraperBase):
         tracks = soup.find_all(class_="segment__track")
         songs = {}
         for track in tracks:
-            artist, song_name = [x.text for x in track.find_all("span")[0:2]]
+            artist = ", ".join(x.text for x in track.find_all("span", class_="artist"))
+            song_name = track.find_all("span", class_="")[0].text
             songs[artist] = song_name
         return songs
 

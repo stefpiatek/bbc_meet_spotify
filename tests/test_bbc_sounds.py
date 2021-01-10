@@ -32,9 +32,13 @@ class TestPlaylistParsing:
         bbc_sounds = BBCSounds("dance_party_2021", True, "testing me", self.playlist_config)
 
         output_songs = bbc_sounds.get_songs()
-        assert len(output_songs) == 62
+        assert len(output_songs) == 66
         assert output_songs[0].artist == "Eric Prydz"
         assert output_songs[0].song_title == "NOPUS"
         # test last song (reverse order)
         assert output_songs[-1].artist == "Maduk"
         assert output_songs[-1].song_title == "Come Back To Me"
+        # check multiple artist doesn't break it
+        assert output_songs[1].song_title == "I Remember"
+        assert output_songs[2].song_title == "Channel 43"
+
