@@ -20,3 +20,4 @@ def parse_playlist_file(playlist_key: str, custom_playlist_name: str = None) -> 
 class PlaylistChoices(str, Enum):
     six_music = "six_music"
     radio1 = "radio1"
+    dance_party_2021 = "dance_party_2021"
