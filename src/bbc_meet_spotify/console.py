@@ -37,3 +37,7 @@ def console(
 
 def main():
     typer.run(console)
+
+
+if __name__ == "__main__":
+    main()
