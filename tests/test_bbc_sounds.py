@@ -32,7 +32,7 @@ class TestPlaylistParsing:
         bbc_sounds = BBCSounds("dance_party_2021", True, "testing me", self.playlist_config)
 
         output_songs = bbc_sounds.get_songs()
-        assert len(output_songs) == 66
+        assert len(output_songs) == 70
         assert output_songs[0].artist == "Eric Prydz"
         assert output_songs[0].song_title == "NOPUS"
         # test last song (reverse order)

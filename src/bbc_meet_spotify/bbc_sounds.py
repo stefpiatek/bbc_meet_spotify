@@ -1,6 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import requests
 import toml
@@ -59,11 +59,12 @@ class BBCSounds:
             previous_songs = defaultdict(list, toml.load(playlist_history))
 
         # remove songs which have already been seen in previous versions of bbc sounds
-        new_songs = {artist: song_name for artist, song_name in current_songs.items()
-                     if song_name.lower() not in previous_songs[artist.lower()]}
+        new_songs = [(artist, song_name)
+                     for artist, song_name in current_songs
+                     if song_name.lower() not in previous_songs[artist.lower()]]
 
         # merge new songs with previous songs
-        for artist, song_name in new_songs.items():
+        for artist, song_name in new_songs:
             previous_songs[artist.lower()].append(song_name.lower())
 
         # write history of songs to file if not a date-prefixed playlist
@@ -72,7 +73,7 @@ class BBCSounds:
                 toml.dump(previous_songs, handle)
 
         # return list of Songs
-        return [Song(artist, song_name) for artist, song_name in new_songs.items()]
+        return [Song(artist, song_name) for artist, song_name in new_songs]
 
 class ScraperBase:
     @staticmethod
@@ -93,19 +94,19 @@ class ScraperBase:
 
 
 class ShowScraper(ScraperBase):
-    def scrape_bbc_sounds(self, url) -> Dict[str, str]:
+    def scrape_bbc_sounds(self, url) -> List[Tuple[str, str]]:
         soup = self.read_html(url)
         tracks = soup.find_all(class_="segment__content")
-        songs = {}
+        songs = []
         for track in tracks:
             artist = ", ".join(x.text for x in track.find_all("span", class_="artist"))
             song_name = track.find_all("span", class_="")[0].text
-            songs[artist] = song_name
+            songs.append((artist, song_name))
         return songs
 
 
 class PlaylistScraper(ScraperBase):
-    def scrape_bbc_sounds(self, url: str) -> Dict[str, str]:
+    def scrape_bbc_sounds(self, url: str) -> List[Tuple[str, str]]:
         """
         Get all artist and song names from bbc sounds url
         :return: List of songs in {artist: song_name}
@@ -126,5 +127,5 @@ class PlaylistScraper(ScraperBase):
                 if separator in i.text
             ])
 
-        songs = {artist: song_name for artist, song_name in track_strings}
+        songs = [(artist, song_name) for artist, song_name in track_strings]
         return songs
