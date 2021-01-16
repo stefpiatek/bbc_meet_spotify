@@ -1,6 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import requests
 import toml
@@ -75,6 +75,7 @@ class BBCSounds:
         # return list of Songs
         return [Song(artist, song_name) for artist, song_name in new_songs]
 
+
 class ScraperBase:
     @staticmethod
     def read_html(url: str) -> BeautifulSoup:
@@ -95,14 +96,26 @@ class ScraperBase:
 
 
 class ShowScraper(ScraperBase):
+    not_broadcasted_message = "This programme will be available shortly after broadcast"
+
     def scrape_bbc_sounds(self, url) -> List[Tuple[str, str]]:
-        soup = self.read_html(url)
-        tracks = soup.find_all(class_="segment__content")
+        more_songs = True
+        next_url = url
         songs = []
-        for track in tracks:
-            artist = ", ".join(x.text for x in track.find_all("span", class_="artist"))
-            song_name = track.find_all("span", class_="")[0].text
-            songs.append((artist, song_name))
+
+        while True:
+            soup = self.read_html(next_url)
+            if self.not_broadcasted_message in soup.text:
+                break;
+
+            tracks = soup.find_all(class_="segment__content")
+            for track in tracks:
+                artist = ", ".join(x.text for x in track.find_all("span", class_="artist"))
+                song_name = track.find_all("span", class_="")[0].text
+                songs.append((artist, song_name))
+            link_to_next = soup.find("a", attrs={"data-bbc-container": "episode", "data-bbc-title": "next:title"})
+            next_url = link_to_next["href"]
+
         return songs
 
 
