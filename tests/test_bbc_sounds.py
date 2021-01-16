@@ -46,4 +46,4 @@ class TestPlaylistParsing:
     def test_chain_of_shows_parsed(self):
         bbc_sounds = BBCSounds("dance_party_2021_multi", True, "testing me", self.playlist_config)
         output_songs = bbc_sounds.get_songs()
-        assert len(output_songs) > 70
+        assert len(output_songs) == 70 + 67
