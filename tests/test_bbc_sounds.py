@@ -29,7 +29,7 @@ class TestPlaylistParsing:
         """
          No previous playlist history, all songs from BBC sounds should be scraped
         """
-        bbc_sounds = BBCSounds("dance_party_2021", True, "testing me", self.playlist_config)
+        bbc_sounds = BBCSounds("dance_party_2021_standalone", True, "testing me", self.playlist_config)
 
         output_songs = bbc_sounds.get_songs()
         assert len(output_songs) == 70
