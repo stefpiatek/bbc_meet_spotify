@@ -19,6 +19,19 @@ toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"
+coverage = "^5.3.1"
+pytest-cov = "^2.10.1"
+
+[tool.coverage.paths]
+source = ["src"]
+
+[tool.coverage.run]
+branch = true
+source = ["bbc_meet_spotify"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 60
 
 [tool.poetry.scripts]
 bbc-meet-spotify = "bbc_meet_spotify.console:main"
