@@ -87,7 +87,8 @@ class ScraperBase:
             page = requests.get(url)
             soup = BeautifulSoup(page.text, "html.parser")
         else:
-            with open(url) as handle:
+            file = Path(__file__).parent.parent.parent / url
+            with open(file) as handle:
                 page = handle.read()
             soup = BeautifulSoup(page, "html.parser")
         return soup
