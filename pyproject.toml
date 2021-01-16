@@ -11,14 +11,14 @@ keywords = ["bbc sounds", "spotify"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-typer = "^0.2.1"
-loguru = "^0.5.0"
+typer = "^0.3.2"
+loguru = "^0.5.3"
 spotipy = "^2.12.0"
-beautifulsoup4 = "^4.9.1"
-toml = "^0.10.1"
+beautifulsoup4 = "^4.9.3"
+toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.4.2"
+pytest = "^6.2.1"
 
 [tool.poetry.scripts]
 bbc-meet-spotify = "bbc_meet_spotify.console:main"
