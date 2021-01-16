@@ -21,3 +21,4 @@ class PlaylistChoices(str, Enum):
     six_music = "six_music"
     radio1 = "radio1"
     dance_party_2021 = "dance_party_2021"
+    dance_anthems = "dance_anthems"
