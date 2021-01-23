@@ -25,13 +25,6 @@ class TestPlaylistParsing:
         output_songs = bbc_sounds.get_songs()
         assert len(output_songs) == 33
 
-        # test first song (reverse order)
-        assert output_songs[0].artist == "Tim Burgess"
-        assert output_songs[0].song_title == "Laurie"
-        # test last song (reverse order)
-        assert output_songs[-1].artist == "Becca Mancari"
-        assert output_songs[-1].song_title == "Hunter"
-
     def test_show_songs_parsed(self):
         """
          No previous playlist history, all songs from BBC sounds should be scraped
@@ -40,15 +33,6 @@ class TestPlaylistParsing:
 
         output_songs = bbc_sounds.get_songs()
         assert len(output_songs) == 70
-        assert output_songs[0].artist == "Eric Prydz"
-        assert output_songs[0].song_title == "NOPUS"
-        # test last song (reverse order)
-        assert output_songs[-1].artist == "Maduk"
-        assert output_songs[-1].song_title == "Come Back To Me"
-        # check multiple artist doesn't break it
-        assert output_songs[1].song_title == "I Remember"
-        assert output_songs[2].song_title == "Channel 43"
-        assert output_songs[5].song_title == "Hands In The Air"
 
     def test_parsed_shows_are_skipped(self, tmp_path):
         bbc_sounds = BBCSounds("dance_party_2021_standalone", False, "dance_party_2021_test", self.playlist_config)
@@ -65,9 +49,9 @@ class TestPlaylistParsing:
 
         output_songs = bbc_sounds.get_songs()
 
-        assert len(output_songs) == 67
+        assert len(output_songs) == 63
 
     def test_chain_of_shows_parsed(self):
         bbc_sounds = BBCSounds("dance_party_2021_multi", True, "testing me", self.playlist_config)
         output_songs = bbc_sounds.get_songs()
-        assert len(output_songs) == 70 + 67
+        assert len(output_songs) == 70 + 63
