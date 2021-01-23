@@ -4,10 +4,10 @@ from typing import Dict, List, Tuple, Union
 
 import requests
 import toml
+from bbc_meet_spotify.songs import Song
 from bs4 import BeautifulSoup
 from loguru import logger
 
-from bbc_meet_spotify.songs import Song
 
 class BBCSounds:
     def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None,
@@ -52,7 +52,7 @@ class BBCSounds:
         """
 
         # get previous songs in playlist
-        playlist_history =  self.playlist_history_dir / f"{self.playlist_suffix}.toml"
+        playlist_history = self.playlist_history_dir / f"{self.playlist_suffix}.toml"
         if not playlist_history.exists() or self.date_prefix:
             previous_songs = defaultdict(list)
         else:
@@ -62,9 +62,9 @@ class BBCSounds:
         current_songs = self.scraper.scrape_bbc_sounds(self.url, previous_songs["_parsed_shows"])
 
         # remove songs which have already been seen in previous versions of bbc sounds
-        new_songs = [(artist, song_name)
-                     for artist, song_name in current_songs
-                     if song_name.lower() not in previous_songs[artist.lower()]]
+        new_songs = set((artist, song_name)
+                        for artist, song_name in current_songs
+                        if song_name.lower() not in previous_songs[artist.lower()])
 
         # merge new songs with previous songs
         for artist, song_name in new_songs:
