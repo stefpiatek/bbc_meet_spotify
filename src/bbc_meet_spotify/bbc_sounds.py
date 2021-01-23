@@ -7,6 +7,7 @@ import toml
 from bbc_meet_spotify.songs import Song
 from bs4 import BeautifulSoup
 from loguru import logger
+from ordered_set import OrderedSet
 
 
 class BBCSounds:
@@ -62,9 +63,9 @@ class BBCSounds:
         current_songs = self.scraper.scrape_bbc_sounds(self.url, previous_songs["_parsed_shows"])
 
         # remove songs which have already been seen in previous versions of bbc sounds
-        new_songs = set((artist, song_name)
-                        for artist, song_name in current_songs
-                        if song_name.lower() not in previous_songs[artist.lower()])
+        new_songs = OrderedSet((artist, song_name)
+                               for artist, song_name in current_songs
+                               if song_name.lower() not in previous_songs[artist.lower()])
 
         # merge new songs with previous songs
         for artist, song_name in new_songs:
@@ -104,7 +105,7 @@ class ScraperBase:
 class ShowScraper(ScraperBase):
 
     def __init__(self):
-        self.parsed_urls = set()
+        self.parsed_urls = OrderedSet()
         self.not_broadcasted_message = "This programme will be available shortly after broadcast"
 
     def add_parsed_shows(self, shows: Dict[str, List[str]]):
@@ -172,6 +173,8 @@ class PlaylistScraper(ScraperBase):
             ])
 
         songs = [(artist, song_name) for artist, song_name in track_strings]
+        # parsed backwards so correct it back to the right order
+        songs.reverse()
         return songs
 
     def add_parsed_shows(self, shows: Dict[str, List[str]]):
