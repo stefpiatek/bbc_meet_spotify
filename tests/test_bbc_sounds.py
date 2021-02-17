@@ -58,6 +58,14 @@ class TestPlaylistParsing:
 
         assert output_songs == []
 
+    def test_parsed_shows_log(self, tmp_path, caplog):
+        bbc_sounds = BBCSounds("dance_party_2021_standalone", False, "dance_party_2021_test", self.playlist_config)
+        bbc_sounds.playlist_history_dir = tmp_path
+        self.copy_resources("dance_party_2021_test.toml", tmp_path)
+        bbc_sounds.get_songs()
+
+        assert "Previously scraped show" in caplog.text
+
     def test_unparsed_shows_are_scraped(self, tmp_path):
         bbc_sounds = BBCSounds("dance_party_2021_multi", False, "dance_party_2021_test", self.playlist_config)
         bbc_sounds.playlist_history_dir = tmp_path
