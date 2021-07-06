@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple, Union
 
 import requests
 import toml
-from bbc_meet_spotify.songs import Song
+from bbc_meet_spotify.music import Song
 from bs4 import BeautifulSoup
 from loguru import logger
 from ordered_set import OrderedSet

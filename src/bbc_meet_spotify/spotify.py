@@ -8,7 +8,7 @@ from loguru import logger
 from spotipy import util
 from spotipy.client import SpotifyException
 
-from bbc_meet_spotify.songs import Song
+from bbc_meet_spotify.music import Song
 
 class Spotify:
     def __init__(self):
@@ -134,7 +134,7 @@ class Spotify:
                 song_id = self.query_spotify(song.artist.replace("'", "").replace(".", ""),
                                              song.song_title.replace("'", "").replace(".", ""))
             except IndexError:
-                self.songs_not_found.append(f"{song.get_track_string()}")
+                self.songs_not_found.append(f"{song.to_string()}")
         return song_id
 
 
