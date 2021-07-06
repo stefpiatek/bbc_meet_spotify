@@ -26,4 +26,4 @@ class Song:
             [char for char in unicodedata.normalize("NFD", string) if unicodedata.category(char) != "Mn"]
         )
         new_string = re.sub("[^A-Za-z0-9.'’]+", " ", new_string)
-        return new_string.split(" feat.")[0].split(" ft.")[0]
+        return new_string.lower().split(" feat.")[0].split(" ft.")[0]
