@@ -1,10 +1,9 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
 import requests
 import toml
-from bbc_meet_spotify.music import Song
 from bs4 import BeautifulSoup
 from loguru import logger
 from ordered_set import OrderedSet
@@ -13,8 +12,7 @@ from ordered_set import OrderedSet
 class BBCSounds:
     def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None,
                  toml_path: Path = Path("./bbc_playlists.toml")):
-        """Builds playlist name and gets playlist url from bbc_playists.toml"""
-        self.playlist_history_dir = Path("playlist_history")
+        self.history_dir = Path("playlist_history")
         playlist = self.get_playlist_info(playlist_key, toml_path)
         self.url = playlist["url"]
         self.date_prefix = date_prefix
@@ -22,10 +20,13 @@ class BBCSounds:
             self.playlist_suffix = playlist_name
         else:
             self.playlist_suffix = playlist["verbose_name"]
+
         if playlist["type"] == "playlist":
             self.scraper = PlaylistScraper()
         elif playlist["type"] == "show":
             self.scraper = ShowScraper()
+        elif playlist["type"] == "album":
+            self.parser = AlbumScraper()
 
     def get_playlist_info(self, playlist_key: str, toml_path: Path) -> dict:
         """
@@ -39,48 +40,35 @@ class BBCSounds:
             playlists = playlists[playlist_key]
         return playlists
 
-    def get_songs(self) -> List[Song]:
-        """Gets songs from bbc sounds url,
-
-        If BBC Sounds was initialised with a date_prefix = false:
-        - Compares against previous scraping for the playlist name if this has been done before
-        - Writes out history of all songs for this playlist to playlist_history directory
-
-        (It was a pain to have spotify singles and album versions become duplicates for songs, so filtering at the
-        BBC sounds stage made more sense)
-
-        :return: list of new Songs
-        """
-
+    def get_music(self) -> Set[Tuple[str, str]]:
         # get previous songs in playlist
-        playlist_history = self.playlist_history_dir / f"{self.playlist_suffix}.toml"
+        playlist_history = self.history_dir / f"{self.playlist_suffix}.toml"
         if not playlist_history.exists() or self.date_prefix:
-            previous_songs = defaultdict(list)
+            previous_music = defaultdict(list)
         else:
-            previous_songs = defaultdict(list, toml.load(playlist_history))
+            previous_music = defaultdict(list, toml.load(playlist_history))
 
-        # get all bbc sounds songs
-        current_songs = self.scraper.scrape_bbc_sounds(self.url, previous_songs["_parsed_shows"])
+        # get all bbc sounds music
+        current_music = self.scraper.scrape_bbc_sounds(self.url, previous_music["_parsed_shows"])
 
-        # remove songs which have already been seen in previous versions of bbc sounds
-        new_songs = OrderedSet((artist, song_name)
-                               for artist, song_name in current_songs
-                               if song_name.lower() not in previous_songs[artist.lower()])
+        # remove songs/abums which have already been seen in previous versions of bbc sounds
+        new_music = OrderedSet((artist, title)
+                               for artist, title in current_music
+                               if title not in previous_music[artist])
 
-        # merge new songs with previous songs
-        for artist, song_name in new_songs:
-            previous_songs[artist.lower()].append(song_name.lower())
+        # merge new songs/abums with previous songs
+        for artist, title in new_music:
+            previous_music[artist].append(title)
 
         # for shows, track newly added shows
-        self.scraper.add_parsed_shows(previous_songs)
+        self.scraper.add_parsed_shows(previous_music)
 
         # write history of songs to file if not a date-prefixed playlist
         if not self.date_prefix:
             with open(playlist_history, "w") as handle:
-                toml.dump(previous_songs, handle)
+                toml.dump(previous_music, handle)
 
-        # return list of Songs
-        return [Song(artist, song_name) for artist, song_name in new_songs]
+        return new_music
 
 
 class ScraperBase:
@@ -100,6 +88,37 @@ class ScraperBase:
                 page = handle.read()
             soup = BeautifulSoup(page, "html.parser")
         return soup
+
+
+class AlbumScraper(ScraperBase):
+    def scrape_bbc_sounds(self, url: Union[str, Path], parsed_show_urls: List[str]) -> List[Tuple[str, str]]:
+        """
+        Get all artist and album names from bbc sounds url
+        :param url Playlist url
+        :param parsed_show_urls not used
+        :return: List of ablums in (artist, album_name)
+        """
+        soup = self.read_html(url)
+        # go to after C list and then get all of the tracks before
+        header = soup.find(class_="beta")
+        for _ in ["B list", "C list", "Album of the day"]:
+            header = header.find_next(class_="beta")
+
+        album_strings = []
+        album_tag = "p"
+        # can be separated by dashes or hyphens
+        for separator in [" – ", " - "]:
+            album_strings.extend([
+                (i.text.strip().split(separator))
+                for i in header.find_all_next(album_tag)
+                if separator in i.text
+            ])
+
+        albums = [(artist.lower(), song_name.lower()) for artist.split(" : ")[1], album_name in album_strings]
+        return albums
+
+    def add_parsed_shows(self, shows: Dict[str, List[str]]):
+        pass
 
 
 class ShowScraper(ScraperBase):
@@ -141,7 +160,7 @@ class ShowScraper(ScraperBase):
             for track in tracks:
                 artist = ", ".join(x.text for x in track.find_all("span", class_="artist"))
                 song_name = track.find_all("span", class_="")[0].text
-                songs.append((artist, song_name))
+                songs.append((artist.lower(), song_name.lower()))
 
         link_to_next = soup.find("a", attrs={"data-bbc-container": "episode", "data-bbc-title": "next:title"})
         next_url = link_to_next["href"]
@@ -172,7 +191,7 @@ class PlaylistScraper(ScraperBase):
                 if separator in i.text
             ])
 
-        songs = [(artist, song_name) for artist, song_name in track_strings]
+        songs = [(artist.lower(), song_name.lower()) for artist, song_name in track_strings]
         # parsed backwards so correct it back to the right order
         songs.reverse()
         return songs

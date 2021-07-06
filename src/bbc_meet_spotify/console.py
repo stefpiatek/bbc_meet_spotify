@@ -32,7 +32,7 @@ def console(
 
     songs = bbc_sounds.get_songs()
     spotify = Spotify()
-    spotify.main(bbc_sounds.playlist_suffix, songs, date_prefix, public_playlist)
+    spotify.add_songs(bbc_sounds.playlist_suffix, songs, date_prefix, public_playlist)
 
 
 def main():

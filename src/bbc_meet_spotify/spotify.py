@@ -83,7 +83,7 @@ class Spotify:
         song_ids = [self._get_song_id(song) for song in songs]
         return list(filter(None, song_ids))
 
-    def main(self, playlist_name, songs, add_date_prefix=True, public_playlist=True):
+    def add_songs(self, playlist_name, songs, add_date_prefix=True, public_playlist=True):
         """
         Run all spotify actions
         :param playlist_name: name of the playlist to be used or created
