@@ -13,8 +13,8 @@ from .music import Music
 
 class BBCSounds:
     def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None,
-                 toml_path: Path = Path("./bbc_playlists.toml")):
-        self.history_dir = Path("playlist_history")
+                 toml_path: Path = Path("./bbc_playlists.toml"), history_dir: Path = Path("./playlist_history")):
+        self.history_dir = history_dir
         playlist = self.get_playlist_info(playlist_key, toml_path)
         self.url = playlist["url"]
         self.date_prefix = date_prefix
@@ -28,7 +28,7 @@ class BBCSounds:
         elif playlist["type"] == "show":
             self.scraper = ShowScraper()
         elif playlist["type"] == "album":
-            self.parser = AlbumScraper()
+            self.scraper = AlbumScraper()
 
     def get_playlist_info(self, playlist_key: str, toml_path: Path) -> dict:
         """
