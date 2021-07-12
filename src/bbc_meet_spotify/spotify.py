@@ -1,14 +1,14 @@
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import List, Set
 
 import spotipy
 import toml
+from bbc_meet_spotify.music import Music
 from loguru import logger
 from spotipy import util
 from spotipy.client import SpotifyException
 
-from bbc_meet_spotify.music import Music
 
 class Spotify:
     def __init__(self):
@@ -17,7 +17,7 @@ class Spotify:
         token = self.get_spotify_token(config)
         self.username = config["username"]
         self.spotify = spotipy.Spotify(auth=token)
-        self.songs_not_found = []
+        self.music_not_found = []
 
     def add_songs_to_playlist(self, playlist_id: str, song_ids: List[str]):
         """
@@ -83,7 +83,23 @@ class Spotify:
         song_ids = [self._get_song_id(song) for song in songs]
         return list(filter(None, song_ids))
 
-    def add_songs(self, playlist_name, songs, add_date_prefix=True, public_playlist=True):
+    def add_albums(self, playlist_name: str, albums: Set[Music], add_date_prefix=True, public_playlist=True):
+        playlist_id = self.create_playlist(playlist_name, add_date_prefix, public_playlist)
+        song_ids = []
+        for album in albums:
+            song_ids.extend(self._query_spotify_album_tracks(album))
+        self.add_songs_to_playlist(playlist_id, song_ids)
+
+        message_base = "All done!"
+        if self.music_not_found:
+            not_found = "\n\t".join(self.music_not_found)
+            logger.info(f"{message_base}\n"
+                        f"Couldn't find the following albums,  you'll have to do this manually for now 😥\n\t"
+                        f"{not_found}")
+        else:
+            logger.info(f"{message_base} No songs need to be added manually 🥳")
+
+    def add_songs(self, playlist_name: str, songs: Set[Music], add_date_prefix=True, public_playlist=True):
         """
         Run all spotify actions
         :param playlist_name: name of the playlist to be used or created
@@ -96,15 +112,15 @@ class Spotify:
         self.add_songs_to_playlist(playlist_id, song_ids)
 
         message_base = "All done!"
-        if self.songs_not_found:
-            manual_songs = "\n\t".join(self.songs_not_found)
+        if self.music_not_found:
+            not_found = "\n\t".join(self.music_not_found)
             logger.info(f"{message_base}\n"
                         f"Couldn't find the following songs,  you'll have to do this manually for now 😥\n\t"
-                        f"{manual_songs}")
+                        f"{not_found}")
         else:
             logger.info(f"{message_base} No songs need to be added manually 🥳")
 
-    def query_spotify(self, artist: str, song_title: str) -> str:
+    def _query_spotify_track(self, artist: str, song_title: str) -> str:
         """
         Query spotify for artist and song title, returning the id
         :param artist: artist
@@ -115,6 +131,22 @@ class Spotify:
         results = self.spotify.search(q=f"artist:{artist} track:{song_title}")["tracks"]["items"]
         results.sort(key=lambda x: len(x["name"]))
         return results[0]["id"]
+
+    def _query_spotify_album_tracks(self, album: Music) -> List[str]:
+        """
+        Query spotify for artist and song title, returning the id
+        :param artist: artist
+        :param title: album title
+        :raises IndexError: if no tracks are found
+        :return: spotify song id
+        """
+        results = self.spotify.search(q=f"artist:{album.artist} album:{album.title}")["tracks"]["items"]
+        song_ids = [result["id"] for result in results]
+
+        if song_ids == []:
+            self.music_not_found.append(album.to_string())
+
+        return song_ids
 
     def _get_song_id(self, song: Music) -> str:
         """
@@ -127,14 +159,12 @@ class Spotify:
         """
         song_id = None
         try:
-            song_id = self.query_spotify(song.artist, song.title)
+            song_id = self._query_spotify_track(song.artist, song.title)
         except IndexError:
             # try fixing the strings with removing apostrophes
             try:
-                song_id = self.query_spotify(song.artist.replace("'", "").replace(".", ""),
-                                             song.title.replace("'", "").replace(".", ""))
+                song_id = self._query_spotify_track(song.artist.replace("'", "").replace(".", ""),
+                                                    song.title.replace("'", "").replace(".", ""))
             except IndexError:
-                self.songs_not_found.append(f"{song.to_string()}")
+                self.music_not_found.append(f"{song.to_string()}")
         return song_id
-
-

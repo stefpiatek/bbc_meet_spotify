@@ -17,17 +17,18 @@ class BBCSounds:
         self.history_dir = history_dir
         playlist = self.get_playlist_info(playlist_key, toml_path)
         self.url = playlist["url"]
+        self.type = playlist["type"]
         self.date_prefix = date_prefix
         if playlist_name:
             self.playlist_suffix = playlist_name
         else:
             self.playlist_suffix = playlist["verbose_name"]
 
-        if playlist["type"] == "playlist":
+        if self.type == "playlist":
             self.scraper = PlaylistScraper()
-        elif playlist["type"] == "show":
+        elif self.type == "show":
             self.scraper = ShowScraper()
-        elif playlist["type"] == "album":
+        elif self.type == "album":
             self.scraper = AlbumScraper()
 
     def get_playlist_info(self, playlist_key: str, toml_path: Path) -> dict:
@@ -116,7 +117,7 @@ class AlbumScraper(ScraperBase):
                 if separator in i.text
             ])
 
-        albums = [(artist, song_name) for artist.split(" : ")[1], album_name in album_strings]
+        albums = [(artist.split(" : ")[1], album_name) for artist, album_name in album_strings]
         return albums
 
     def add_parsed_shows(self, shows: Dict[str, List[str]]):
