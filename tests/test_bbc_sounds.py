@@ -25,12 +25,12 @@ class TestPlaylistParsing:
         output_songs = bbc_sounds.get_music()
         assert len(output_songs) == 33
         # test first song
-        assert output_songs[0][0] == "becca mancari"
-        assert output_songs[0][1] == "hunter"
+        assert output_songs[0].artist == "becca mancari"
+        assert output_songs[0].title == "hunter"
 
         # test last song
-        assert output_songs[-1][0] == "tim burgess"
-        assert output_songs[-1][1] == "laurie"
+        assert output_songs[-1].artist == "tim burgess"
+        assert output_songs[-1].title == "laurie"
 
     def test_show_songs_parsed(self):
         """
@@ -40,15 +40,15 @@ class TestPlaylistParsing:
 
         output_songs = bbc_sounds.get_music()
         assert len(output_songs) == 70
-        assert output_songs[0][0] == "eric prydz"
-        assert output_songs[0][1] == "nopus"
+        assert output_songs[0].artist == "eric prydz"
+        assert output_songs[0].title == "nopus"
         # test last song (reverse order)
-        assert output_songs[-1][0] == "maduk"
-        assert output_songs[-1][1] == "come back to me"
+        assert output_songs[-1].artist == "maduk"
+        assert output_songs[-1].title == "come back to me"
         # check multiple artist doesn't break it
-        assert output_songs[1][1] == "i remember"
-        assert output_songs[2][1] == "channel 43"
-        assert output_songs[5][1] == "hands in the air"
+        assert output_songs[1].title == "i remember"
+        assert output_songs[2].title == "channel 43"
+        assert output_songs[5].title == "hands in the air"
 
     def test_parsed_shows_are_skipped(self, tmp_path):
         bbc_sounds = BBCSounds("dance_party_2021_standalone", False, "dance_party_2021_test", self.playlist_config)

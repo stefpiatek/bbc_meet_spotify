@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup
 from loguru import logger
 from ordered_set import OrderedSet
 
+from .music import Music
+
 
 class BBCSounds:
     def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None,
@@ -40,7 +42,7 @@ class BBCSounds:
             playlists = playlists[playlist_key]
         return playlists
 
-    def get_music(self) -> Set[Tuple[str, str]]:
+    def get_music(self) -> Set[Music]:
         # get previous songs in playlist
         playlist_history = self.history_dir / f"{self.playlist_suffix}.toml"
         if not playlist_history.exists() or self.date_prefix:
@@ -52,13 +54,13 @@ class BBCSounds:
         current_music = self.scraper.scrape_bbc_sounds(self.url, previous_music["_parsed_shows"])
 
         # remove songs/abums which have already been seen in previous versions of bbc sounds
-        new_music = OrderedSet((artist, title)
+        new_music = OrderedSet(Music(artist, title)
                                for artist, title in current_music
                                if title not in previous_music[artist])
 
         # merge new songs/abums with previous songs
-        for artist, title in new_music:
-            previous_music[artist].append(title)
+        for music in new_music:
+            previous_music[music.artist].append(music.title)
 
         # for shows, track newly added shows
         self.scraper.add_parsed_shows(previous_music)

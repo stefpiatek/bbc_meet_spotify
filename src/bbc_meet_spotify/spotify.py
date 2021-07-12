@@ -8,7 +8,7 @@ from loguru import logger
 from spotipy import util
 from spotipy.client import SpotifyException
 
-from bbc_meet_spotify.music import Song
+from bbc_meet_spotify.music import Music
 
 class Spotify:
     def __init__(self):
@@ -74,7 +74,7 @@ class Spotify:
 
         return playlist["id"]
 
-    def get_song_ids(self, songs: List[Song]) -> List[str]:
+    def get_song_ids(self, songs: List[Music]) -> List[str]:
         """
         Convert all Songs into song ids, failed conversions will be removed
         :param songs: Songs to be converted
@@ -116,7 +116,7 @@ class Spotify:
         results.sort(key=lambda x: len(x["name"]))
         return results[0]["id"]
 
-    def _get_song_id(self, song: Song) -> str:
+    def _get_song_id(self, song: Music) -> str:
         """
         Get song id from spotify.
         Will attempt to first search keeping apostrophes in text, if that fails then
