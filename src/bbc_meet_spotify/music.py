@@ -6,6 +6,12 @@ class Music:
         self.title = self.clean_string(title)
         self.artist = self.clean_string(artist)
 
+    def __hash__(self):
+        return hash(self.to_string())
+
+    def __eq__(self, other):
+        return self.artist == other.artist and self.title == other.title
+
     def __repr__(self):
         return f"<{self.to_string()}>"
 
