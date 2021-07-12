@@ -127,12 +127,12 @@ class Spotify:
         """
         song_id = None
         try:
-            song_id = self.query_spotify(song.artist, song.song_title)
+            song_id = self.query_spotify(song.artist, song.title)
         except IndexError:
             # try fixing the strings with removing apostrophes
             try:
                 song_id = self.query_spotify(song.artist.replace("'", "").replace(".", ""),
-                                             song.song_title.replace("'", "").replace(".", ""))
+                                             song.title.replace("'", "").replace(".", ""))
             except IndexError:
                 self.songs_not_found.append(f"{song.to_string()}")
         return song_id

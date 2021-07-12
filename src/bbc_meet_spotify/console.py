@@ -30,7 +30,7 @@ def console(
     logger.info(f"Getting playlist for bbc playlist key {playlist_key.value}")
     bbc_sounds = BBCSounds(playlist_key.value, date_prefix, custom_playlist_name)
 
-    songs = bbc_sounds.get_songs()
+    songs = bbc_sounds.get_music()
     spotify = Spotify()
     spotify.add_songs(bbc_sounds.playlist_suffix, songs, date_prefix, public_playlist)
 

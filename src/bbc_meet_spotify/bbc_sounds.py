@@ -56,7 +56,7 @@ class BBCSounds:
         # remove songs/abums which have already been seen in previous versions of bbc sounds
         new_music = OrderedSet(Music(artist, title)
                                for artist, title in current_music
-                               if title not in previous_music[artist])
+                               if Music.clean_string(title) not in previous_music[Music.clean_string(artist)])
 
         # merge new songs/abums with previous songs
         for music in new_music:
@@ -116,7 +116,7 @@ class AlbumScraper(ScraperBase):
                 if separator in i.text
             ])
 
-        albums = [(artist.lower(), song_name.lower()) for artist.split(" : ")[1], album_name in album_strings]
+        albums = [(artist, song_name) for artist.split(" : ")[1], album_name in album_strings]
         return albums
 
     def add_parsed_shows(self, shows: Dict[str, List[str]]):
@@ -162,7 +162,7 @@ class ShowScraper(ScraperBase):
             for track in tracks:
                 artist = ", ".join(x.text for x in track.find_all("span", class_="artist"))
                 song_name = track.find_all("span", class_="")[0].text
-                songs.append((artist.lower(), song_name.lower()))
+                songs.append((artist, song_name))
 
         link_to_next = soup.find("a", attrs={"data-bbc-container": "episode", "data-bbc-title": "next:title"})
         next_url = link_to_next["href"]
@@ -193,7 +193,7 @@ class PlaylistScraper(ScraperBase):
                 if separator in i.text
             ])
 
-        songs = [(artist.lower(), song_name.lower()) for artist, song_name in track_strings]
+        songs = [(artist, song_name) for artist, song_name in track_strings]
         # parsed backwards so correct it back to the right order
         songs.reverse()
         return songs
