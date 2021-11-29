@@ -186,6 +186,7 @@ class PlaylistScraper(ScraperBase):
         :return: List of songs in (artist, song_name)
         """
         soup = self.read_html(url)
+        soup.preserve_whitespace_tags = 'br'
         # go to after C list and then get all of the tracks before
         header = soup.find(class_="beta")
         for _ in ["B list", "C list", "Album of the day"]:
@@ -193,15 +194,28 @@ class PlaylistScraper(ScraperBase):
 
         track_strings = []
         song_tag = "p"
+        # keep br tags as sometimes they don't always use p in playlist
+        for br in soup.find_all("br"):
+            br.replace_with("\n")
+
         # can be separated by dashes or hyphens
         for separator in [" – ", " - "]:
             track_strings.extend([
-                (i.text.strip().split(separator))
+                (i.text.split(separator))
                 for i in header.find_all_previous(song_tag)
                 if separator in i.text
             ])
 
-        songs = [(artist, song_name) for artist, song_name in track_strings]
+        songs = []
+
+        for track_tuple in track_strings:
+            if len(track_tuple) == 2:
+                artist, song_name = track_tuple
+                songs.append((artist.strip(), song_name.strip()))
+            elif len(track_tuple) > 2:
+                br_separated_tracks = list(itertools.chain.from_iterable(i.split("\n\n") for i in track_tuple))
+                for artist, song_name in zip(*[iter(br_separated_tracks)]*2):
+                    songs.append((artist.strip(), song_name.strip()))
         # parsed backwards so correct it back to the right order
         songs.reverse()
         return songs
