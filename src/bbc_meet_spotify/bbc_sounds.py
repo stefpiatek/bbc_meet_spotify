@@ -1,3 +1,4 @@
+import itertools
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Union
@@ -110,14 +111,20 @@ class AlbumScraper(ScraperBase):
         album_strings = []
         album_tag = "p"
         # can be separated by dashes or hyphens
-        for separator in [" – ", " - "]:
+        for separator in [":"]:
             album_strings.extend([
                 (i.text.strip().split(separator))
                 for i in header.find_all_next(album_tag)
                 if separator in i.text
             ])
 
-        albums = [(artist.split(" : ")[1], album_name) for artist, album_name in album_strings]
+        by = " by "
+        albums = []
+        for album_parts in album_strings:
+            album_artist_selected = album_parts[1]
+            album_name = album_artist_selected.split(by)[0]
+            artist = album_artist_selected.split(", selected by")[0].lstrip(f"{album_name}{by}")
+            albums.append((artist, album_name))
         return albums
 
     def add_parsed_shows(self, shows: Dict[str, List[str]]):
