@@ -122,8 +122,8 @@ class AlbumScraper(ScraperBase):
         albums = []
         for album_parts in album_strings:
             album_artist_selected = album_parts[1]
-            album_name = album_artist_selected.split(by)[0]
-            artist = album_artist_selected.split(", selected by")[0].lstrip(f"{album_name}{by}")
+            album_name = album_artist_selected.split(by)[0].strip()
+            artist = album_artist_selected.split(", selected by")[0].lstrip(f"{album_name}{by}").strip()
             albums.append((artist, album_name))
         return albums
 
