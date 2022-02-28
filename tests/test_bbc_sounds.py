@@ -16,7 +16,7 @@ class TestPlaylistParsing:
         bbc_sounds = BBCSounds("six_music", True, "testing me", self.playlist_config)
 
         output_songs = bbc_sounds.get_songs()
-        assert len(output_songs) == 33
+        assert len(output_songs) == 35
 
         # test first song (reverse order)
         assert output_songs[0].artist == "Tim Burgess"

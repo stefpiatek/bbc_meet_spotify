@@ -135,11 +135,11 @@ class PlaylistScraper(ScraperBase):
         song_tag = "p"
         # can be separated by dashes or hyphens
         for separator in [" – ", " - "]:
-            track_strings.extend([
-                (i.text.strip().split(separator))
-                for i in header.find_all_previous(song_tag)
-                if separator in i.text
-            ])
+            for track_tag in header.find_all_previous(song_tag):
+                for track_contents in track_tag.contents:
+                    track_contents_string = track_contents.text
+                    if separator in track_contents_string:
+                        track_strings.extend([track_contents_string.strip().split(separator)])
 
         songs = [(artist, song_name) for artist, song_name in track_strings]
         return songs
