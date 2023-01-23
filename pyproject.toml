@@ -13,7 +13,7 @@ keywords = ["bbc sounds", "spotify"]
 python = "^3.7"
 typer = "^0.3.2"
 loguru = "^0.5.3"
-spotipy = "^2.12.0"
+spotipy = "^2.22.1"
 beautifulsoup4 = "^4.9.3"
 toml = "^0.10.2"
 
