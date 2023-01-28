@@ -129,8 +129,9 @@ class Spotify:
         :return: spotify song id
         """
         results = self.spotify.search(q=f"artist:{artist} track:{song_title}")["tracks"]["items"]
-        results.sort(key=lambda x: len(x["name"]))
-        return results[0]["id"]
+        filtered = [result for result in results if song_title in result['name'].lower()]
+        filtered.sort(key=lambda x: len(x["name"]))
+        return filtered[0]["id"]
 
     def _query_spotify_album_tracks(self, album: Music) -> List[str]:
         """
