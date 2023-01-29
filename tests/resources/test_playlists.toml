@@ -2,6 +2,10 @@
     verbose_name = "BBC 6 Music"
     url = "tests/resources/bbc_sounds_6music.html"
     type = "playlist"
+[six_music_albums]
+    verbose_name = "BBC 6 Music"
+    url = "tests/resources/bbc_sounds_6music.html"
+    type = "album"
 [dance_party_2021_standalone]
     verbose_name = "BBC Dance Party 2021"
     url = "tests/resources/dance-party-2021_standalone.html"

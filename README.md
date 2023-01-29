@@ -73,7 +73,7 @@ see their documentation if you need help using the command line options.
 
 
 You can view the command line options by `poetry run bbc-meet-spotify --help`
-
+poetry add --dev coverage[toml] pytest-cov
 ```text
 Usage: bbc-meet-spotify [OPTIONS] 
                         [six_music|radio1|dance_party_2021|dance_anthems]
