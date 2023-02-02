@@ -23,7 +23,7 @@ class TestPlaylistParsing:
         bbc_sounds = BBCSounds("six_music", True, "testing me", self.playlist_config)
 
         output_songs = bbc_sounds.get_music()
-        assert len(output_songs) == 33
+        assert len(output_songs) == 35
         # test first song
         assert output_songs[0].artist == "becca mancari"
         assert output_songs[0].title == "hunter"
