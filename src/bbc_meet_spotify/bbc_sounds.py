@@ -55,12 +55,12 @@ class BBCSounds:
         # get all bbc sounds music
         current_music = self.scraper.scrape_bbc_sounds(self.url, previous_music["_parsed_shows"])
 
-        # remove songs/abums which have already been seen in previous versions of bbc sounds
+        # remove songs/albums which have already been seen in previous versions of bbc sounds
         new_music = OrderedSet(Music(artist, title)
                                for artist, title in current_music
                                if Music.clean_string(title) not in previous_music[Music.clean_string(artist)])
 
-        # merge new songs/abums with previous songs
+        # merge new songs/albums with previous songs
         for music in new_music:
             previous_music[music.artist].append(music.title)
 
