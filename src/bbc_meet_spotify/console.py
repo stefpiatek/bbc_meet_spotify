@@ -37,6 +37,8 @@ def console(
     else:
         spotify.add_songs(bbc_sounds.playlist_suffix, music, date_prefix, public_playlist)
 
+    bbc_sounds.write_playlist_history(music)
+
 
 def main():
     typer.run(console)

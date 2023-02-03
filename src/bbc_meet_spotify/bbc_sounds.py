@@ -16,23 +16,31 @@ class BBCSounds:
     def __init__(self, playlist_key: str, date_prefix: bool, playlist_name: str = None,
                  toml_path: Path = Path("./bbc_playlists.toml"), history_dir: Path = Path("./playlist_history")):
         self.history_dir = history_dir
-        playlist = self.get_playlist_info(playlist_key, toml_path)
-        self.url = playlist["url"]
-        self.type = playlist["type"]
+        self.playlist = self.get_playlist_info(playlist_key, toml_path)
+        self.url = self.playlist["url"]
+        self.type = self.playlist["type"]
         self.date_prefix = date_prefix
+        self.playlist_suffix = self.get_playlist_suffix(self.playlist, playlist_name)
+        self.scraper = self.get_scraper_type(self.type)
+
+    @staticmethod
+    def get_scraper_type(playlist_type: str):
+        if playlist_type == "playlist":
+            return PlaylistScraper()
+        elif playlist_type == "show":
+            return ShowScraper()
+        elif playlist_type == "album":
+            return AlbumScraper()
+
+    @staticmethod
+    def get_playlist_suffix(playlist: dict, playlist_name: str) -> str:
         if playlist_name:
-            self.playlist_suffix = playlist_name
+            return playlist_name
         else:
-            self.playlist_suffix = playlist["verbose_name"]
+            return playlist["verbose_name"]
 
-        if self.type == "playlist":
-            self.scraper = PlaylistScraper()
-        elif self.type == "show":
-            self.scraper = ShowScraper()
-        elif self.type == "album":
-            self.scraper = AlbumScraper()
-
-    def get_playlist_info(self, playlist_key: str, toml_path: Path) -> dict:
+    @staticmethod
+    def get_playlist_info(playlist_key: str, toml_path: Path) -> dict:
         """
         Get playlist information for requests playlist
         :param toml_path: path for toml for playlists
@@ -45,12 +53,7 @@ class BBCSounds:
         return playlists
 
     def get_music(self) -> Set[Music]:
-        # get previous songs in playlist
-        playlist_history = self.history_dir / f"{self.playlist_suffix}.toml"
-        if not playlist_history.exists() or self.date_prefix:
-            previous_music = defaultdict(list)
-        else:
-            previous_music = defaultdict(list, toml.load(playlist_history))
+        previous_music = self._get_playlist_history(self._get_playlist_history_path())
 
         # get all bbc sounds music
         current_music = self.scraper.scrape_bbc_sounds(self.url, previous_music["_parsed_shows"])
@@ -60,19 +63,31 @@ class BBCSounds:
                                for artist, title in current_music
                                if Music.clean_string(title) not in previous_music[Music.clean_string(artist)])
 
+        return new_music
+
+    def write_playlist_history(self, new_music: Set[Music]) -> None:
+        playlist_history_path = self._get_playlist_history_path()
+        previous_music = self._get_playlist_history(playlist_history_path)
         # merge new songs/albums with previous songs
         for music in new_music:
             previous_music[music.artist].append(music.title)
-
         # for shows, track newly added shows
         self.scraper.add_parsed_shows(previous_music)
-
         # write history of songs to file if not a date-prefixed playlist
         if not self.date_prefix:
-            with open(playlist_history, "w") as handle:
+            with open(playlist_history_path, "w") as handle:
                 toml.dump(previous_music, handle)
+                logger.info("Successfully updated playlist history")
 
-        return new_music
+    def _get_playlist_history_path(self) -> str:
+        return self.history_dir / f"{self.playlist_suffix}.toml"
+
+    def _get_playlist_history(self, playlist_history_path: str) -> dict:
+        if not playlist_history_path.exists() or self.date_prefix:
+            previous_music = defaultdict(list)
+        else:
+            previous_music = defaultdict(list, toml.load(playlist_history_path))
+        return previous_music
 
 
 class ScraperBase:
