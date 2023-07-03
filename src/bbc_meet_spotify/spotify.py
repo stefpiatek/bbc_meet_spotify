@@ -4,10 +4,10 @@ from typing import List, Set
 
 import spotipy
 import toml
+
 from bbc_meet_spotify.music import Music
 from loguru import logger
 from spotipy import util
-from spotipy.client import SpotifyException
 
 
 class Spotify:
@@ -19,7 +19,7 @@ class Spotify:
         self.spotify = spotipy.Spotify(auth=token)
         self.music_not_found = []
 
-    def add_songs_to_playlist(self, playlist_id: str, song_ids: List[str]):
+    def add_music_to_playlist(self, playlist_id: str, song_ids: List[str]) -> None:
         """
         Songs which are not currently in the playlist will be added.
         :param playlist_id: id for playlist
@@ -29,10 +29,11 @@ class Spotify:
         playlist_info = self.spotify.user_playlist(self.username, playlist_id, "tracks")
         existing_songs = [x["track"]["id"] for x in playlist_info["tracks"]["items"]]
         new_song_ids = [song_id for song_id in song_ids if song_id not in existing_songs]
-        try:
+        if new_song_ids:
             self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
-        except SpotifyException as e:
-            logger.info(f"No new songs were added to the playlist\n{e}")
+        else:
+            logger.info("No new music to add to the playlist")
+
 
     @staticmethod
     def get_spotify_token(config: dict) -> str:
@@ -83,12 +84,12 @@ class Spotify:
         song_ids = [self._get_song_id(song) for song in songs]
         return list(filter(None, song_ids))
 
-    def add_albums(self, playlist_name: str, albums: Set[Music], add_date_prefix=True, public_playlist=True):
+    def add_albums(self, playlist_name: str, albums: Set[Music], add_date_prefix=True, public_playlist=True) -> None:
         playlist_id = self.create_playlist(playlist_name, add_date_prefix, public_playlist)
-        song_ids = []
+        album_ids = []
         for album in albums:
-            song_ids.extend(self._query_spotify_album_tracks(album))
-        self.add_songs_to_playlist(playlist_id, song_ids)
+            album_ids.extend(self._query_spotify_album_tracks(album))
+            self.add_music_to_playlist(playlist_id, album_ids)
 
         message_base = "All done!"
         if self.music_not_found:
@@ -97,9 +98,9 @@ class Spotify:
                         f"Couldn't find the following albums,  you'll have to do this manually for now 😥\n\t"
                         f"{not_found}")
         else:
-            logger.info(f"{message_base} No songs need to be added manually 🥳")
+            logger.info(f"{message_base} No albums need to be added manually 🥳")
 
-    def add_songs(self, playlist_name: str, songs: Set[Music], add_date_prefix=True, public_playlist=True):
+    def add_songs(self, playlist_name: str, songs: Set[Music], add_date_prefix=True, public_playlist=True) -> None:
         """
         Run all spotify actions
         :param playlist_name: name of the playlist to be used or created
@@ -109,7 +110,7 @@ class Spotify:
         """
         playlist_id = self.create_playlist(playlist_name, add_date_prefix, public_playlist)
         song_ids = self.get_song_ids(songs)
-        self.add_songs_to_playlist(playlist_id, song_ids)
+        self.add_music_to_playlist(playlist_id, song_ids)
 
         message_base = "All done!"
         if self.music_not_found:

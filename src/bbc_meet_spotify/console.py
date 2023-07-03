@@ -32,10 +32,15 @@ def console(
 
     music = bbc_sounds.get_music()
     spotify = Spotify()
-    if bbc_sounds.type == "album":
-        spotify.add_albums(bbc_sounds.playlist_suffix, music, date_prefix, public_playlist)
+    if music:
+        if bbc_sounds.type == "album":
+            spotify.add_albums(bbc_sounds.playlist_suffix, music, date_prefix, public_playlist)
+        else:
+            spotify.add_songs(bbc_sounds.playlist_suffix, music, date_prefix, public_playlist)
+
+        bbc_sounds.write_playlist_history(music)
     else:
-        spotify.add_songs(bbc_sounds.playlist_suffix, music, date_prefix, public_playlist)
+        logger.info("No new music to add to the playlist")
 
 
 def main():
