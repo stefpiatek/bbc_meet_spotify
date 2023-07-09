@@ -1,7 +1,7 @@
 import itertools
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import requests
 import toml
@@ -53,7 +53,7 @@ class BBCSounds:
         return playlists
 
     def get_music(self) -> Set[Music]:
-        previous_music = self._get_playlist_history(self._get_playlist_history_path())
+        previous_music = self._get_playlist_history(self._playlist_history_file)
 
         # get all bbc sounds music
         current_music = self.scraper.scrape_bbc_sounds(self.url, previous_music["_parsed_shows"])
@@ -66,7 +66,7 @@ class BBCSounds:
         return new_music
 
     def write_playlist_history(self, new_music: Set[Music]) -> None:
-        playlist_history_path = self._get_playlist_history_path()
+        playlist_history_path = self._playlist_history_file
         previous_music = self._get_playlist_history(playlist_history_path)
         # merge new songs/albums with previous songs
         for music in new_music:
@@ -79,10 +79,11 @@ class BBCSounds:
                 toml.dump(previous_music, handle)
                 logger.info("Successfully updated playlist history")
 
-    def _get_playlist_history_path(self) -> str:
+    @property
+    def _playlist_history_file(self) -> Path:
         return self.history_dir / f"{self.playlist_suffix}.toml"
 
-    def _get_playlist_history(self, playlist_history_path: str) -> dict:
+    def _get_playlist_history(self, playlist_history_path: Path) -> dict:
         if not playlist_history_path.exists() or self.date_prefix:
             previous_music = defaultdict(list)
         else:
@@ -152,7 +153,7 @@ class ShowScraper(ScraperBase):
         self.parsed_urls = OrderedSet()
         self.not_broadcasted_message = "This programme will be available shortly after broadcast"
 
-    def add_parsed_shows(self, shows: Dict[str, List[str]]):
+    def add_parsed_shows(self, shows: Dict[str, OrderedSet[str]]) -> None:
 
         shows["_parsed_shows"] = self.parsed_urls
 
@@ -168,7 +169,7 @@ class ShowScraper(ScraperBase):
 
         return songs
 
-    def _scrape_show(self, url: Union[str, Path], songs: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def _scrape_show(self, url: Union[str, Path], songs: Optional[List[Tuple[str, str]]]) -> List[Tuple[str, str]]:
         if songs is None:
             songs = []
 
