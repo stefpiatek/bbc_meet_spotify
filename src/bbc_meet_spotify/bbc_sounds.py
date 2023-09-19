@@ -214,13 +214,13 @@ class PlaylistScraper(ScraperBase):
         for br in soup.find_all("br"):
             br.replace_with("\n")
 
-        # can be separated by dashes or hyphens
-        for separator in [" – ", " - "]:
-            track_strings.extend([
-                (i.text.split(separator))
-                for i in header.find_all_previous(song_tag)
-                if separator in i.text
-            ])
+        # can be separated by dashes or hyphens, so convert to one for splitting
+        hyphen, dash = " – ", " - "
+        track_strings.extend([
+            (i.text.replace(hyphen, dash).split(dash))
+            for i in header.find_all_previous(song_tag)
+            if dash in i.text
+        ])
 
         songs = []
 
@@ -230,7 +230,7 @@ class PlaylistScraper(ScraperBase):
                 songs.append((artist.strip(), song_name.strip()))
             elif len(track_tuple) > 2:
                 br_separated_tracks = list(itertools.chain.from_iterable(i.split("\n\n") for i in track_tuple))
-                for artist, song_name in zip(*[iter(br_separated_tracks)]*2):
+                for artist, song_name in zip(*[iter(br_separated_tracks)] * 2):
                     songs.append((artist.strip(), song_name.strip()))
         # parsed backwards so correct it back to the right order
         songs.reverse()
