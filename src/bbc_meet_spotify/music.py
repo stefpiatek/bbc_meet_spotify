@@ -27,7 +27,7 @@ class Music:
             [char for char in unicodedata.normalize("NFD", string) if unicodedata.category(char) != "Mn"]
         )
         new_string = re.sub("[^A-Za-z0-9.'’]+", " ", new_string)
-        return new_string.lower().split(" feat.")[0].split(" ft.")[0]
+        return new_string.lower().split(" feat.")[0].split(" ft.")[0].strip()
 
     def to_string(self):
         """Get string value for album or song"""
