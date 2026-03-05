@@ -26,11 +26,16 @@ class Spotify:
         :param song_ids: list of song ids
         :return:
         """
-        playlist_info = self.spotify.user_playlist(self.username, playlist_id, "tracks")
-        existing_songs = [x["track"]["id"] for x in playlist_info["tracks"]["items"]]
+        playlist_items = self.spotify.playlist_items(playlist_id, fields="items.track.id,next")
+        existing_songs = [x["track"]["id"] for x in playlist_items["items"] if x.get("track") and x["track"].get("id")]
+        while playlist_items.get("next"):
+            playlist_items = self.spotify.next(playlist_items)
+            existing_songs.extend(
+                [x["track"]["id"] for x in playlist_items["items"] if x.get("track") and x["track"].get("id")]
+            )
         new_song_ids = [song_id for song_id in song_ids if song_id not in existing_songs]
         if new_song_ids:
-            self.spotify.user_playlist_add_tracks(self.username, playlist_id, new_song_ids)
+            self.spotify.playlist_add_items(playlist_id, new_song_ids)
         else:
             logger.info("No new music to add to the playlist")
 
@@ -44,10 +49,10 @@ class Spotify:
         """
         token = util.prompt_for_user_token(
             config["username"],
-            "playlist-modify-private playlist-modify-public",
+            "playlist-read-private playlist-modify-private playlist-modify-public",
             config["client_id"],
             config["client_secret"],
-            "http://localhost:8888",
+            "http://127.0.0.1:8888",
         )
         return token
 
@@ -61,7 +66,7 @@ class Spotify:
         """
         if add_date_prefix:
             playlist_name = f"{time.strftime('%Y-%m-%d')}_{playlist_name}"
-        current_playlists = self.spotify.user_playlists(self.username)
+        current_playlists = self.spotify.current_user_playlists()
 
         playlist = {}
         for current_playlist in current_playlists["items"]:
@@ -71,7 +76,7 @@ class Spotify:
 
         if not playlist:
             logger.info(f"Creating playlist '{playlist_name}' for user '{self.username}'")
-            playlist = self.spotify.user_playlist_create(self.username, playlist_name, public=public_playlist)
+            playlist = self.spotify.current_user_playlist_create(playlist_name, public=public_playlist)
 
         return playlist["id"]
 

@@ -35,6 +35,8 @@ their playlists on Spotify. This is a low effort way to get those playlists back
    poetry init
    ```
 
+   This project requires `spotipy>=2.26.0`.
+
 1. Follow the instructions for [authorisation of spotify apps](https://spotipy.readthedocs.io/en/latest/#authorized-requests)
    (which involves [registering your app](https://developer.spotify.com/dashboard/)). 
    The name of the application can be whatever you'd like. 
@@ -96,4 +98,3 @@ The default command line options with the `six_music` are equivalent to calling:
 ```bash
 poetry run bbc-meet-spotify --no-date-prefix --public-playlist six_music
 ```
-
